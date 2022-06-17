@@ -1,0 +1,57 @@
+PMID- 21921637
+OWN - NLM
+STAT- MEDLINE
+DCOM- 20120418
+LR  - 20111129
+IS  - 1660-2110 (Electronic)
+IS  - 1660-2110 (Linking)
+VI  - 119
+IP  - 3
+DP  - 2011
+TI  - Survival analysis II: Cox regression.
+PG  - c255-60
+LID - 10.1159/000328916 [doi]
+AB  - In contrast to the Kaplan-Meier method, Cox proportional hazards regression can 
+      provide an effect estimate by quantifying the difference in survival between 
+      patient groups and can adjust for confounding effects of other variables. The 
+      purpose of this article is to explain the basic concepts of the Cox regression 
+      method, and to provide some guidance regarding the presentation of the results.
+CI  - Copyright © 2011 S. Karger AG, Basel.
+FAU - Stel, Vianda S
+AU  - Stel VS
+AD  - ERA-EDTA Registry, Department of Medical Informatics, Academic Medical Center, 
+      University of Amsterdam, Amsterdam, The Netherlands. v.s.stel@amc.uva.nl
+FAU - Dekker, Friedo W
+AU  - Dekker FW
+FAU - Tripepi, Giovanni
+AU  - Tripepi G
+FAU - Zoccali, Carmine
+AU  - Zoccali C
+FAU - Jager, Kitty J
+AU  - Jager KJ
+LA  - eng
+PT  - Journal Article
+PT  - Research Support, Non-U.S. Gov't
+DEP - 20110914
+PL  - Switzerland
+TA  - Nephron Clin Pract
+JT  - Nephron. Clinical practice
+JID - 101159763
+SB  - IM
+MH  - Confidence Intervals
+MH  - Data Interpretation, Statistical
+MH  - Glomerular Filtration Rate
+MH  - Humans
+MH  - Kidney Diseases/*mortality
+MH  - *Proportional Hazards Models
+EDAT- 2011/09/17 06:00
+MHDA- 2012/04/19 06:00
+CRDT- 2011/09/17 06:00
+PHST- 2011/09/17 06:00 [entrez]
+PHST- 2011/09/17 06:00 [pubmed]
+PHST- 2012/04/19 06:00 [medline]
+AID - 000328916 [pii]
+AID - 10.1159/000328916 [doi]
+PST - ppublish
+SO  - Nephron Clin Pract. 2011;119(3):c255-60. doi: 10.1159/000328916. Epub 2011 Sep 
+      14.
