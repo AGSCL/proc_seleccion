@@ -473,7 +473,7 @@ Apuntamos a separar por filas y columnas ciertas secciones estandarizadas: títu
 
 HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020[220:250,] %>% 
   knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Tabla. Muestra"),
+               caption = paste0("Muestra"),
                align =c('l',rep('c', 101)))%>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 10) %>%
   kableExtra::add_footnote(c("Nota. "),
@@ -587,7 +587,7 @@ if(part_2 %>%
 part_2%>%
   dplyr::slice(1:400) %>% 
   knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0("Tabla"),
+                caption = paste0(""),
                 align =c('l',rep('c', 101)))%>%
      kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
      kableExtra::add_footnote(c("Nota. "),
@@ -633,7 +633,7 @@ part_2 %>%
 part_3%>%
   dplyr::slice(1:400) %>% 
   knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0("Tabla. Primeros 400 casos"),
+                caption = paste0("Primeros 400 casos"),
                 align =c('l',rep('c', 101)))%>%
      kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
      kableExtra::add_footnote(c("Nota. "),
@@ -696,7 +696,7 @@ part_4<-
 part_4%>%
     dplyr::slice(1:400) %>% 
   knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0("Tabla. Primeros 400 casos"),
+                caption = paste0("Primeros 400 casos"),
                 align =c('l',rep('c', 101)))%>%
      kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
      kableExtra::add_footnote(c("Nota. "),
@@ -730,7 +730,7 @@ part_5<-
 part_5%>%
     dplyr::slice(1:400) %>% 
   knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0("Tabla. Primeros 400 casos"),
+                caption = paste0("Primeros 400 casos"),
                 align =c('l',rep('c', 101)))%>%
      kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
      kableExtra::add_footnote(c("Nota. "),
@@ -908,7 +908,7 @@ part_8 <-
 part_8%>%
   dplyr::slice(1:400) %>% 
   knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0("Tabla. Primeros 400 casos"),
+                caption = paste0("Primeros 400 casos"),
                 align =c('l',rep('c', 101)))%>%
      kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
      kableExtra::add_footnote(c("Nota. "),
@@ -970,7 +970,7 @@ part_9 %>%
 part_10 %>% 
   dplyr::slice(1:400) %>%   
     knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Tabla. Primeros 400 casos"),
+               caption = paste0("Primeros 400 casos"),
                align =c('l',rep('c', 101)))%>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
   kableExtra::add_footnote(c("Nota. "),
@@ -1020,7 +1020,7 @@ part_10 %>%
 part_11 %>% 
   dplyr::slice(1:400) %>% 
     knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Tabla. Primeros 400 casos"),
+               caption = paste0("Primeros 400 casos"),
                align =c('l',rep('c', 101)))%>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
   kableExtra::add_footnote(c("Nota. "),
@@ -1097,7 +1097,7 @@ fuzzyjoin::stringdist_join(data.frame(name=part_12$sel1), data.frame(name=part_1
   dplyr::filter(name_conc1!=name_conc2_lag) %>% 
   slice(1:20) %>% 
     knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Tabla. Comparación de nombres"),
+               caption = paste0("Comparación de nombres"),
                align =c('l',rep('c', 101)))%>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
   kableExtra::add_footnote(c("Nota. "),
@@ -1192,7 +1192,7 @@ part_15 <-
 part_15%>% 
    dplyr::slice(1:400) %>%
     knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Tabla. Primeros 400 casos"),
+               caption = paste0("Primeros 400 casos"),
                align =c('l',rep('c', 101)))%>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
   kableExtra::add_footnote(c("Nota. "),
@@ -1225,7 +1225,7 @@ Adicionalmente, se eliminaron usuarios que tuvieran datos perdidos en la fecha d
 ¿Cuántas personas han resultado seleccionadas más de una vez en la ventana de seguimiento?
 
 
-```{r 18_desc1, echo=T, paged.print=TRUE,eval=T}
+```{r 18-desc1, echo=T, paged.print=TRUE,eval=T, fig.align="center", fig.cap="Seleccionados en procesos"}
 part_16 %>% group_by(id_seleccionado) %>% 
   summarise(n()) %>%  janitor::tabyl(`n()`) %>% 
   dplyr::ungroup()%>%
@@ -1258,7 +1258,7 @@ Se definen los eventos de interés: la profesionalización y el cambio de grado 
 
 <br>
 
-```{r 18_desc3, echo=T, paged.print=TRUE,eval=T}
+```{r 18-desc3, echo=T, paged.print=TRUE,eval=T}
 part_17<-
 part_16 %>% 
   #cambió las fechas por números desde 1970-01-01
@@ -1313,7 +1313,7 @@ Se muestran los porcentajes de hombres y mujeres
 
 <br>
 
-```{r 18_desc4, echo=T, paged.print=TRUE,eval=T}
+```{r 18-desc4, echo=T, paged.print=TRUE,eval=T}
 part_17 %>% janitor::tabyl(event_n,sex)%>%
     janitor::adorn_percentages("col") %>%
     janitor::adorn_pct_formatting(digits = 2) %>%
@@ -1342,7 +1342,7 @@ Luego, se grafica la distribución de fechas en que se cerraron los procesos de 
 
 <br>
 
-```{r 18_desc5, echo=T, paged.print=TRUE,eval=T}
+```{r 18-desc5, echo=T, paged.print=TRUE,eval=T, fig.cap="Histograma de fechas de término", fig.align="center"}
 fechas_termino_procesos<-
 part_17 %>% dplyr::summarise(min = as.character(min(fech_ter, na.rm=T)),
          p025=as.character(as.Date(quantile(unclass(fech_ter), .025, na.rm=T), origin = "1970-01-01")),
@@ -1364,7 +1364,7 @@ part_17 %>%
 
 <br>
 
-```{r 18_desc6, echo=T, paged.print=TRUE,eval=T}
+```{r 18-desc6, echo=T, paged.print=TRUE,eval=T, fig.cap="Eventos por sexo y periodo", fig.align="center"}
 sum_fech_ter_sex_event<-
 part_17 %>% 
   dplyr::group_by(fech_ter_cut, sex, event_n)%>% 
@@ -1499,7 +1499,7 @@ La razón de tasas de densidad de incidencia de aumentar grado o profesionalizar
 
 <br>
 
-```{r 20_survplot_sex_rec, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Figure 12. Cum. HRiesgo de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
+```{r 20-survplot-sex-rec, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Riesgo Acumulado de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
 fit_sex_rec<- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17,
                                type      = "kaplan-meier",
                                 error     = "greenwood",
@@ -1597,7 +1597,7 @@ alt5, exponentiate=T, conf.int=T, digits=2))
 res_cox2 %>% 
   dplyr::select(-std.error,-estimate) %>% 
       knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","), digits=2,
-               caption = paste0("Tabla. Modelos alternativos (incluyen fecha de término proceso)"),
+               caption = paste0("Modelos alternativos (incluyen fecha de término proceso)"),
                col.names=c("Parámetro","RR","valor p","CI bajo","CI alto"),
                align =c('l',rep('c', 101)))%>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
@@ -1680,7 +1680,7 @@ rbind.data.frame(cuminc_comp_table1, cuminc_comp_table2, cuminc_comp_table3, cum
 
 # Session Info
 
-```{r session_info, echo=T, paged.print=TRUE}
+```{r session-info, echo=T, paged.print=TRUE}
 Sys.getenv("R_LIBS_USER")
 sessionInfo()
 warning(getwd())
