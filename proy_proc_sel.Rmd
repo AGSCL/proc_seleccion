@@ -1614,7 +1614,171 @@ res_cox2 %>%
 
 La asociación también se conservaría 
 
-```{r 21c, echo=T, paged.print=TRUE,eval=F}
+#### Paso 3.2. Restringir a 1 evento por usuario.
+
+En este caso, pasamos de `r nrow(part_17)` a `r nrow(dplyr::group_by(part_17,id_seleccionado)%>% dplyr::mutate(rn=row_number())%>% dplyr::filter(rn<2))`. Por tanto, aquí no consideramos los riesgos de un 3er o posterior proceso de selección. Lo anterior, para chequear si la exposición previa podría afectar los resultados de la siguiente.  
+
+<br>
+
+```{r 20b, echo=T, paged.print=TRUE,eval=T}
+#creamos la base de datos filtrada.
+part_17_first_ev<-
+part_17 %>% 
+    dplyr::group_by(id_seleccionado) %>% 
+    dplyr::mutate(rn=row_number()) %>% 
+    dplyr::filter(rn<2) %>% ungroup()
+
+
+#event_n diff_bet_proc
+biostat3::survRate(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17_first_ev)
+
+sex_irr2 <-irrs(x="sex", z="diff_bet_proc", y="event_n>0", db="part_17_first_ev")
+#General population=1     Women specific=2 
+```
+
+<br>
+
+La razón de tasas de densidad de incidencia de aumentar grado o profesionalizarse en mujeres es `r round(as.numeric(sex_irr2$estimate[1]),2)` veces mayor que hombres (95% IC `r round(sex_irr2$conf.int[1],2)`-`r round(sex_irr2$conf.int[2],2)`; p`r ifelse(sprintf("%1.3f",sex_irr2$p.value)=="0.000","<0.001",paste0("= ", sprintf("%1.3f",sex_irr2$p.value)))`).
+
+<br>
+
+```{r 20-survplot-sex-rec-b, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Riesgo Acumulado de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
+fit_sex_rec2<- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17_first_ev,
+                               type      = "kaplan-meier",
+                                error     = "greenwood",
+                                conf.type = "log-log") 
+
+#http://rstudio-pubs-static.s3.amazonaws.com/522481_5e55bec9c94044678e680a6d07e96a2e.html
+#https://rstudio-pubs-static.s3.amazonaws.com/258589_cd197f86fb5548ac89d7bcffd4bc6afe.html
+#http://pcool.dyndns.org:8080/statsbook/?page_id=513
+#http://rstudio-pubs-static.s3.amazonaws.com/316989_83cbe556125645b698c9ff6cf88c4c1a.html
+#https://cran.r-project.org/web/packages/survminer/readme/README.html
+#https://docs.ufpr.br/~jlpadilha/CE077/Aulas/2.TecnicasNaoParametricas.pdf 
+#http://www.columbia.edu/~sjm2186/EPIC_R/packages.pdf
+ggsurvplot_fit_sex_rec2<-
+  ggsurvplot(fit_sex_rec2, 
+           fun = "cumhaz",
+           conf.int = TRUE,
+           legend.labs = c("Hombre", "Mujer"), 
+           risk.table = "abs_pct",
+           #ncensor.plot = TRUE,
+           ggtheme = theme_classic2(base_size=10),
+           risk.table.y.text.col = F,
+           risk.table.col="black",
+           font.tickslab = c(10),
+           risk.table.height = .2,
+           risk.table.fontsize = 2.5,
+           #break.time.by = 365.25,
+           pval = F,
+           #ylim=c(0,10),
+           legend = c(0.15,0.88), 
+           legend.title="Profesionalización/\nAumentar grado",
+           xlab= "Tiempo (días en escala logarítmica)", 
+           #cumevents=T,
+           surv.connect = T,
+           censor= F,
+          # xscale=  "d_y",
+           palette = c("skyblue4","gray50"))+
+  labs(y="Riesgo acumulado")
+ggsurvplot_fit_sex_rec2
+
+invisible("Prueba de riesgos proporcionales:")
+prop_haz2<-cox.zph(coxph(Surv(diff_bet_proc, event_n>0)~factor(sex),
+              data=part_17_first_ev))
+```
+
+<br>
+
+Atendiendo a que los riesgos entre hombres y mujeres se distribuyen de manera proporcional (Residuos Schoefeld: $X^2$ (`r data.frame(prop_haz2$table)[1,2]`)= `r round(data.frame(prop_haz2$table)[1,1],2)`  , p=`r round(data.frame(prop_haz2$table)[1,3],4)`), se decidió hacer un análisis de supervivencia de cox.
+
+<br>
+
+```{r 212a, echo=T, paged.print=TRUE,eval=T}
+res_coxb<-
+  broom::tidy(
+coxph(Surv(diff_bet_proc, event_n>0)~factor(sex),
+                  data=part_17_first_ev,method = "breslow"), exponentiate=T, conf.int=T) 
+```
+
+<br>
+
+De los resultados del análisis de supervivencia de cox se desprende que las mujeres tendrían `r round(res_coxb$estimate,2)` mayores riesgos de experimentar un aumento de grado o profesionalización que hombres (95% IC `r round(res_coxb$conf.low,2)`, `r round(res_coxb$conf.high,2)`).
+
+<br>
+
+```{r 212b, echo=T, paged.print=TRUE,eval=T}
+alt1b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_cut2,
+                  data=part_17_first_ev,method = "breslow")
+
+alt2b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_num^2,
+                  data=part_17_first_ev,method = "breslow")
+
+alt3b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_num^3,
+                  data=part_17_first_ev,method = "breslow")
+
+alt4b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_num,
+                  data=part_17_first_ev,method = "breslow")
+
+alt5b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ log(fech_ter_num),
+                  data=part_17_first_ev,method = "breslow")
+
+anova(alt5b, alt4b, alt3b, alt2b, alt1b)
+
+res_cox2b<-
+  rbind(broom::tidy(
+alt1b, exponentiate=T, conf.int=T, digits=2),
+broom::tidy(
+alt2b, exponentiate=T, conf.int=T, digits=2),
+broom::tidy(
+alt3b, exponentiate=T, conf.int=T, digits=2),
+broom::tidy(
+alt4b, exponentiate=T, conf.int=T, digits=2),
+broom::tidy(
+alt5b, exponentiate=T, conf.int=T, digits=2))
+
+#extractAIC(fit)
+res_cox2b %>% 
+  dplyr::select(-std.error,-estimate) %>% 
+      knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","), digits=2,
+               caption = paste0("Modelos alternativos (incluyen fecha de término proceso)"),
+               col.names=c("Parámetro","RR","valor p","CI bajo","CI alto"),
+               align =c('l',rep('c', 101)))%>%
+    kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
+  kableExtra::add_footnote(c("Nota. porcentaje y recuento entre paréntesis"),
+                            notation = "none")%>%
+  kableExtra::kable_classic()%>%
+  kableExtra::group_rows("Como categórica",1,3) %>% 
+  kableExtra::group_rows("Cuadrática",4,5) %>% 
+  kableExtra::group_rows("Cúbica",6,7) %>% 
+  kableExtra::group_rows("Lineal",8,9) %>% 
+  kableExtra::group_rows("Logarítmica",10,11) %>% 
+  kableExtra::scroll_box(width = "100%", height = "375px") 
+```
+
+Se observa que la asociación se mantiene en todas sus formas. Adicionalmente, la fecha de la primera selección no tiene un efecto en la segunda.
+
+<br>
+
+#### Paso 3.3. Generar un modelo de efectos concatenados.
+
+Dado que en ambos casos vimos que la estructura era proporcional, Decidimos hacer un modelo con efectos concatenados o PWP-TT (prentice william petersen).
+
+```{r pwp, echo=T, paged.print=TRUE,eval=T}
+res_coxc<-
+  broom::tidy(
+coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)*rn + cluster(id_seleccionado)+ strata(rn),
+                  data=part_17 %>% 
+    dplyr::group_by(id_seleccionado) %>% 
+    dplyr::mutate(rn=factor(row_number())) %>% 
+    ungroup(),method = "breslow"), exponentiate=T, conf.int=T) 
+```
+
+De los resultados del análisis de supervivencia de cox con diseño anidado por sujeto y estratificado por proceso de selección adjudicado, se desprende que las mujeres tendrían `r round(res_coxc$estimate[1],2)` mayores riesgos de experimentar un aumento de grado o profesionalización que hombres en el segundo proceso  (95% IC `r round(res_coxc$conf.low[1],2)`, `r round(res_coxc$conf.high[1],2)`), pero el 3er proceso no modificaría ninguna de estas diferencias  (95% IC `r round(res_coxc$conf.low[4],2)`, `r round(res_coxc$conf.high[4],2)`). Posiblemente, porque muy pocos casos se han adjudicado un 3er proceso (n= `r dplyr::group_by(part_17,id_seleccionado) %>% dplyr::mutate(rn=factor(row_number())) %>% ungroup() %>% dplyr::filter(rn==3) %>% nrow()`).
+
+<br>
+
+
+```{r comprsk, echo=T, paged.print=TRUE,eval=F}
 #biostat3::survRate(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17)
 
   # CumIncidence (,
@@ -1675,7 +1839,8 @@ rbind.data.frame(cuminc_comp_table1, cuminc_comp_table2, cuminc_comp_table3, cum
   labs(caption= "Note. There are no discharges after 1,095 days from the admission.")
 ```
               
-            
+
+          
 <br>
 
 # Session Info
