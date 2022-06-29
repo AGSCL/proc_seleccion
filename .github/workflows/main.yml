@@ -38,5 +38,5 @@ jobs:
         run: install.packages("withr")
         shell: Rscript {0}
       - name: Render Site
-        run: |-
-          Rscript -e 'rmarkdown::render("proy_proc_sel.Rmd")'
+        run: rmarkdown::render("proy_proc_sel.Rmd")
+        shell: Rscript {0}
