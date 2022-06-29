@@ -1,8 +1,13 @@
 name: Render and Deploy RMarkdown Website
 'on': push
+  schedule:
+    - cron: '35 1 * * THU' # 1.35 am UTC is 11.30 melbourne time
 jobs:
   build:
     runs-on: windows-latest
+    env:
+        BUILD_DIR: $DEPLOY_PATH
+        GH_PAT: ${{ secrets.GH_PAT }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@master
@@ -12,6 +17,11 @@ jobs:
       - name: Lint
         run: lintr::lint_dir()
         shell: Rscript {0}
+
+      - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-r@master
+      - uses: r-lib/actions/setup-pandoc@v1
+
       - name: Install Package Dependencies
         run: |-
           Rscript -e "install.packages(c('pacman', 'rsconnect', 'remotes'), type = 'binary', dependencies = TRUE)"
@@ -20,10 +30,10 @@ jobs:
         run: |-
           Rscript -e "rmarkdown::render("proy_proc_sel.Rmd",encoding = 'UTF-8')"
           echo "::set-env name=DEPLOY_PATH::$(Rscript -e "cat(rmarkdown::site_config()[['output_dir']])")"
-      - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/master'
-        uses: maxheld83/ghpages@v0.2.0
-        env:
-          BUILD_DIR: $DEPLOY_PATH
-          GH_PAT: ${{ secrets.GH_PAT }}
-    container: rocker/verse:latest
+      - name: Commit
+        run: |
+          git config --global user.name 'AGSCL'
+          git config --global user.email 'AGSCL@github.com'
+          git add .
+          git commit -m 'refreshing data' || echo "No changes to commit"
+          git push || echo "No changes to commit"
