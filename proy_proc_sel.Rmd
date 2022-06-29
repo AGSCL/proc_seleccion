@@ -118,6 +118,7 @@ if(!require(survival)){install.packages("survival")}
 if(!require(rvest)){install.packages("rvest")}
 if(!require(guaguas)){install.packages("guaguas")}
 if(!require(readxl)){install.packages("readxl")}
+if(!require(janitor)){install.packages("janitor")}
 
 
 copiar_nombres <- function(x,row.names=FALSE,col.names=TRUE,dec=",",...) {
