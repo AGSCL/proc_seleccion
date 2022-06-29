@@ -1,7 +1,11 @@
 name: Render and Deploy RMarkdown Website
-'on': push
+on:
+  push:
+    branches:
+      - master
+
   schedule:
-    - cron: '35 1 * * THU' # 1.35 am UTC is 11.30 melbourne time
+    - cron: '*/5 * * * *' #Once per day at midnight
 jobs:
   build:
     runs-on: windows-latest
