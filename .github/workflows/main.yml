@@ -10,6 +10,7 @@ jobs:
       matrix:
         r-version: [4.1.2]
     steps:
+      - uses: actions/checkout@v2
       - name: Set up R ${{ matrix.r-version }}		
         uses: r-lib/actions/setup-r@master
         with:
@@ -23,16 +24,8 @@ jobs:
         shell: Rscript {0}
       - name: Install Package Dependencies
         run: |-
-          Rscript -e "install.packages(c('pacman', 'rsconnect', 'remotes'), type = 'binary', dependencies = TRUE)"
+          Rscript -e "install.packages(c('pacman', 'rsconnect', 'remotes','renv'), type = 'binary', dependencies = TRUE)"
           Rscript -e "remotes::install_deps(type = 'binary', force = FALSE, dependencies = TRUE)"
       - name: Render Site
         run: |-
           Rscript -e "rmarkdown::render("proy_proc_sel.Rmd",encoding = 'UTF-8')"
-      - name: Commit
-        run: |
-          git config --global user.name 'AGSCL'
-          git config --global user.email 'AGSCL@github.com'
-          git add .
-          git commit -m 'refreshing data' || echo "No changes to commit"
-          git push || echo "No changes to commit"
-      - uses: r-lib/actions/checkout@v2
