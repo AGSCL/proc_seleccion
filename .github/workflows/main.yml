@@ -17,10 +17,7 @@ jobs:
           r-version: ${{ matrix.r-version }}
       - uses: r-lib/actions/setup-pandoc@v1
       - name: Install lintr
-        run: install.packages("lintr")
-        shell: Rscript {0}
-      - name: Lint
-        run: lintr::lint_dir()
+        run: install.packages("rmarkdown")
         shell: Rscript {0}
       - name: Render Site
         run: |-
