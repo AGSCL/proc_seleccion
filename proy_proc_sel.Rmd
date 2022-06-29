@@ -117,6 +117,8 @@ if(!require(survminer)){install.packages("survminer")}
 if(!require(survival)){install.packages("survival")}
 if(!require(rvest)){install.packages("rvest")}
 if(!require(guaguas)){install.packages("guaguas")}
+if(!require(readxl)){install.packages("readxl")}
+
 
 copiar_nombres <- function(x,row.names=FALSE,col.names=TRUE,dec=",",...) {
   if(class(ungroup(x))[1]=="tbl_df"){
