@@ -4,8 +4,6 @@ on:
   schedule:
     - cron: '0 0 * * * '
 jobs:
-  env:
-    GH_PAT: ${{ secrets.GH_PAT }}
   build:
     runs-on: windows-latest
     strategy:
