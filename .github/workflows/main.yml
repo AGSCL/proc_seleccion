@@ -7,7 +7,6 @@ jobs:
   build:
     runs-on: windows-latest
     env:
-	R_REMOTES_NO_ERRORS_FROM_WARNINGS: true        
 	BUILD_DIR: $DEPLOY_PATH
         GH_PAT: ${{ secrets.GH_PAT }}
     steps:
