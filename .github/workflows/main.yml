@@ -2,14 +2,20 @@ name: Render and Deploy RMarkdown Website
 'on': push
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: windows-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@master
+      - name: Install lintr
+        run: install.packages("lintr")
+        shell: Rscript {0}
+      - name: Lint
+        run: lintr::lint_dir()
+        shell: Rscript {0}
       - name: Install Package Dependencies
         run: |-
-          Rscript -e "install.packages('remotes', repos = 'https://demo.rstudiopm.com/all/__linux__/bionic/latest')"
-          Rscript -e "remotes::install_deps(dependencies = TRUE, repos = 'https://demo.rstudiopm.com/all/__linux__/bionic/latest')"
+          Rscript -e "install.packages(c('pacman', 'rsconnect', 'remotes'), type = 'binary', dependencies = TRUE)"
+          Rscript -e "remotes::install_deps(type = 'binary', force = FALSE, dependencies = TRUE)"
       - name: Render Site
         run: |-
           Rscript -e "rmarkdown::render("proy_proc_sel.Rmd",encoding = 'UTF-8')"
