@@ -22,10 +22,6 @@ jobs:
       - name: Lint
         run: lintr::lint_dir()
         shell: Rscript {0}
-      - name: Install Package Dependencies
-        run: |-
-          Rscript -e "install.packages(c('pacman', 'rsconnect', 'remotes','renv'), type = 'binary', dependencies = TRUE)"
-          Rscript -e "remotes::install_deps(type = 'binary', force = FALSE, dependencies = TRUE)"
       - name: Render Site
         run: |-
           Rscript -e "rmarkdown::render("proy_proc_sel.Rmd",encoding = 'UTF-8')"
