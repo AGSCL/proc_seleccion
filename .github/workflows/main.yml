@@ -12,8 +12,8 @@ jobs:
       matrix:
         r-version: [4.1.2]
     steps:
-      - name: Checkout	
-	uses: actions/checkout@v2
+      - name: Checkout
+	uses: r-lib/actions/checkout@v2
       - name: Set up R ${{ matrix.r-version }}		
         uses: r-lib/actions/setup-r@master
         with:
