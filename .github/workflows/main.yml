@@ -7,7 +7,8 @@ jobs:
   build:
     runs-on: windows-latest
     env:
-        BUILD_DIR: $DEPLOY_PATH
+	R_REMOTES_NO_ERRORS_FROM_WARNINGS: true        
+	BUILD_DIR: $DEPLOY_PATH
         GH_PAT: ${{ secrets.GH_PAT }}
     steps:
       - name: Checkout Repository
@@ -30,7 +31,6 @@ jobs:
       - name: Render Site
         run: |-
           Rscript -e "rmarkdown::render("proy_proc_sel.Rmd",encoding = 'UTF-8')"
-          echo "::set-env name=DEPLOY_PATH::$(Rscript -e "cat(rmarkdown::site_config()[['output_dir']])")"
       - name: Commit
         run: |
           git config --global user.name 'AGSCL'
