@@ -16,8 +16,17 @@ jobs:
         with:
           r-version: ${{ matrix.r-version }}
       - uses: r-lib/actions/setup-pandoc@v1
-      - name: Install lintr
+      - name: Install rmarkdown
         run: install.packages("rmarkdown")
+        shell: Rscript {0}
+      - name: Install knitr
+        run: install.packages("knitr")
+        shell: Rscript {0}
+      - name: Install distill
+        run: install.packages("distill")
+        shell: Rscript {0}
+      - name: Install withr
+        run: install.packages("withr")
         shell: Rscript {0}
       - name: Render Site
         run: |-
