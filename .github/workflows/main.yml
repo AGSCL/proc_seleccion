@@ -10,7 +10,6 @@ jobs:
       matrix:
         r-version: [4.1.2]
     steps:
-      - uses: r-lib/actions/checkout@v2
       - name: Set up R ${{ matrix.r-version }}		
         uses: r-lib/actions/setup-r@master
         with:
@@ -36,3 +35,4 @@ jobs:
           git add .
           git commit -m 'refreshing data' || echo "No changes to commit"
           git push || echo "No changes to commit"
+      - uses: r-lib/actions/checkout@v2
