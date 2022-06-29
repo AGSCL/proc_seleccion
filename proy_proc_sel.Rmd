@@ -111,6 +111,7 @@ if(!require(curl)){install.packages("curl")}
 if(!require(tidylog)){install.packages("tidylog")}
 if(!require(fuzzyjoin)){install.packages("fuzzyjoin")}
 if(!require(compareGroups)){install.packages("compareGroups")}
+if(!require(cmprsk)){install.packages("cmprsk")}
 if(!require(biostat3)){install.packages("biostat3")}
 if(!require(rateratio.test)){install.packages("rateratio.test")}
 if(!require(survminer)){install.packages("survminer")}
