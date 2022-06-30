@@ -19,6 +19,10 @@ jobs:
         uses: r-lib/actions/setup-r@master
         with:
           r-version: ${{ matrix.r-version }}
+        uses: actions/cache@v1
+        with:
+	  path: ${{ env.R_LIBS_USER }}
+          key: r-${{ hashFiles('DESCRIPTION') }}
       - uses: r-lib/actions/setup-pandoc@v1
       - name: Install lintr
         run: install.packages("lintr")
