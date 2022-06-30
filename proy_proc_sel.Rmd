@@ -579,13 +579,14 @@ part_2<-
   dplyr::mutate(cat=gsub("fecha de postulacion", "fecha", cat)) %>% 
   tidyr::separate(cat,c("1","2","3","4","5","6"),":") %>%
   dplyr::mutate(titulos=ifelse(is.na(cargo),`1`,NA_character_)) %>% 
-  dplyr::mutate(rn=dplyr::row_number())
+  dplyr::mutate(rn=dplyr::row_number()) 
 
 #[a749] analista de gestion estrategica
 if(part_2 %>% 
     dplyr::filter(grepl("\\[",`1`),is.na(cargo)) %>% nrow()>0){warning("Todavía hay procesos de selección que no están categorizados como tal (tal vez carecen de espacio entre el título y el proceso anterior)")}
 if(part_2 %>% 
     dplyr::filter(grepl("\\[.*\\-.*\\]",`1`),!grepl("acta20|ir20",`1`)) %>%  nrow()>0){warning(paste0("Existen ",nrow(dplyr::filter(part_2,grepl("\\[.*\\-.*\\]",`1`),!grepl("acta20|ir20",`1`)))," procesos que tienen más de una persona seleccionada en él"))}
+
   #[a683-a684-a685-a686-a687-a688] mayordomo(a)   [a723 - a724 - a725 - a726] bibliotecario(a) [a736 -a737] asistente social estudiantil [a645 - a648] desarrollador(a) técnico(a) ti
 # [a548]-[a549] abogada/o dirección jurídica 
 
@@ -613,7 +614,7 @@ part_2%>%
 
 <br>
 
-Generamos columnas con un código único para identificar cada proceso de selección llamado `id_proc_sel`. Adicionalmente, dejamos que toda la información concerniente a cada proceso esté agrupado en la columna `títulos`, y que la columna `cargo` se replique para cada campo de cada proceso. Por el momento, nuestra base de datos se encuentra en formato largo.
+Generamos columnas con un código único para identificar cada proceso de selección llamado `id_proc_sel`. Adicionalmente, dejamos que toda la información concerniente a cada proceso esté agrupado en la columna `títulos`, y que la columna `cargo` se replique para cada campo de cada proceso. Por el momento, nuestra base de datos se encuentra en formato largo. Por otra parte, los procesos de selección "al rango" e "interno dirigido" se recodificaron como "interno" dado que la mayoría de los procesos incluían esa modalidad de entrega. Por último, [a438] administrativo/a de cobranzas está duplicado. Para prevenir esto, generamos una base de datos que corrigiera todos los procesos que por alguna razón tuvieran campos totalmente duplicados (incluso el id del proceso)
 
 <br>
 
@@ -633,9 +634,51 @@ part_2 %>%
                  id_proc_sel = sprintf("%04d",cumsum(cargo2))) %>%
   dplyr::select(id_proc_sel,cargo, titulos,cat_info) %>% 
   dplyr::mutate(cat_info=gsub("deisy mundo castro \\- rita perez baeza \\- marina vergara roman","deisy mundo castro - rita perez baeza - marina vergara roman - gina carmona gonzalez - daniela mora ayala - maria diaz gonzalez",cat_info)) %>% 
-  dplyr::filter(!grepl("gina",titulos))
+  dplyr::filter(!grepl("gina",titulos)) %>% 
+  dplyr::mutate(cat_info=gsub("desierto\\*","desierto",cat_info)) %>% 
+  dplyr::mutate(cat_info=gsub("finalizado\\,\\,","finalizado",cat_info)) %>% 
+  dplyr::mutate(cat_info=gsub("finalizado\\,s","finalizado",cat_info)) %>% 
+  dplyr::mutate(cat_info=gsub("desierto\\,","desierto",cat_info)) %>% 
+ dplyr::mutate(cat_info=gsub("al rango","interno",cat_info)) %>% 
+dplyr::mutate(cat_info=gsub("interno dirigido","interno",cat_info))%>% 
+  dplyr::mutate(id_control_dup=paste0(id_proc_sel,"__",cargo,"__",titulos))%>%
+  dplyr::group_by(id_control_dup) %>% 
+  dplyr::mutate(n_fila_dup=row_number()) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(id_control_dup2=paste0(id_proc_sel,"__",cargo,"__",titulos,"__",n_fila_dup))
 
-part_3%>%
+#  [a638] cajero(a) b 1° categoria ( caja finanzas)
+part_3_correct<-
+  part_3 %>% 
+  #1755- procesos que duplican
+  dplyr::mutate(id_control_dup=paste0(id_proc_sel,"__",cargo,"__",titulos))%>%
+  dplyr::group_by(id_control_dup) %>% 
+  dplyr::mutate(n_fila_dup=row_number()) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::filter(n_fila_dup>1, !is.na(titulos)) %>% 
+  dplyr::group_by(cargo) %>% 
+  dplyr::mutate(n_fila_dup2=n()) %>%
+  #descarto las filas residuales
+  dplyr::filter(n_fila_dup2>1) %>% 
+  dplyr::ungroup() %>% 
+  #se genera una forma de separar los procesos
+  dplyr::mutate(rn=as.numeric(factor(id_proc_sel))) %>% 
+  dplyr::ungroup() %>% 
+  #generamos id único y hacemos las filas comparables
+  dplyr::mutate(id_proc_sel_original=id_proc_sel) %>% 
+  dplyr::mutate(id_proc_sel=sprintf("%04d",as.numeric(max(part_3$id_proc_sel, na.rm=T))+rn)) %>% 
+  dplyr::mutate(id_control_dup2=paste0(id_proc_sel_original,"__",cargo,"__",titulos,"__",n_fila_dup)) 
+
+
+part_3_2<-
+part_3 %>% 
+dplyr::filter(!id_control_dup2 %in% unique(part_3_correct$id_control_dup2)) %>% 
+dplyr::bind_rows(part_3_correct[,names(part_3)]) %>% 
+  dplyr::mutate(id_control_dup2=paste0(id_proc_sel,"__",cargo,"__",titulos,"__",n_fila_dup))
+
+
+
+part_3_2%>%
   dplyr::slice(1:400) %>% 
   knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
                 caption = paste0("Primeros 400 casos"),
@@ -645,7 +688,6 @@ part_3%>%
                               notation = "none")%>%
      kableExtra::kable_classic()%>%
      kableExtra::scroll_box(width = "100%", height = "375px")
-
 ```
 
 <br>
@@ -655,6 +697,8 @@ Para cada proceso de selección e información asociado a él, le asignamos un n
 - Los casos con 9 filas corresponde a un proceso con 2 seleccionados
 - El caso con 5 filas (1755) corresponde a un proceso que habría sido declarado desierto, o que se asumirá así 
 
+Adicionalmente, se corrigen algunos títulos de los campos de interés.
+
 Posteriormente se tendrá que tener cuenta aquellos procesos que tienen más de un seleccionado y se deja en formato ancho.
 
 <br>
@@ -662,8 +706,14 @@ Posteriormente se tendrá que tener cuenta aquellos procesos que tienen más de 
 ```{r 4, echo=T, paged.print=TRUE,eval=T}
 #2022
 #1950  1835 1755 (debiese ser un proceso separado del a749 )
+# cajero(a) b 1° categoria ( caja finanzas)
+
+if(length(unique(part_3_2$titulos))>7){
+  warning("Más de una categoría (NA,'cargo','lugar','proceso de seleccion','fecha','estado','seleccionado'), por tanto será reemplazado con NA (aunque debe ser investigado)")
+}
 part_4<-
-  part_3%>% 
+  part_3_2%>% 
+  dplyr::mutate(titulos= dplyr::case_when(!titulos %in% c("cargo","lugar","proceso de seleccion","fecha","estado","seleccionado")~NA_character_,T~titulos)) %>% 
   dplyr::group_by(id_proc_sel) %>% 
   dplyr::mutate(n=n()) %>% 
   dplyr::ungroup() %>% 
@@ -688,10 +738,34 @@ part_4<-
   filter(dplyr::case_when(grepl("gilberto godoy mendez",cat_info) & id_proc_sel=="0070"~F, #When y == "", x > 3
                           T ~ T) #Otherwise, x < 3
   ) %>%
-  dplyr::mutate(id=paste0(id_proc_sel,"__",cargo,"__",n)) %>% 
+  dplyr::mutate(id=paste0(id_proc_sel,"__",cargo,"__",n)) %>%
   dplyr::group_by(id) %>% 
+  dplyr::mutate(n_fila=n()) %>% 
+  dplyr::mutate(eso=paste0(id,"_",titulos)) %>% 
+     dplyr::group_by(eso) %>% 
+     dplyr::mutate(n_eso=n()) %>% 
+     #dplyr::filter(n_eso>1) %>% 
+  dplyr::mutate(titulos= dplyr::case_when(n_eso>1 & is.na(titulos) & cat_info %in% c("interno","externo")~"proceso de seleccion", T~titulos)) %>%
+  dplyr::mutate(cat_info= dplyr::case_when(grepl("jefe de area",cat_info) & grepl("director unidad",cargo) & is.na(titulos) ~ NA_character_, T~cat_info)) %>%
+     filter(dplyr::case_when(!is.na(cat_info) & is.na(titulos)~F,T ~ T)) %>%
+
+  dplyr::ungroup() %>% 
+  dplyr::mutate(id=paste0(id_proc_sel,"__",cargo,"__",n)) %>%
+  dplyr::group_by(id) %>% 
+  dplyr::mutate(n_fila=n()) %>% 
+  
   tidyr::pivot_wider(id_cols = c(id), names_from=titulos, values_from = cat_info) %>% 
   dplyr::ungroup()
+
+#0543 0556 1646 1755 > de una categoría
+#0543 
+#"desierto,  "finalizado,," "finalizado,s"
+
+# dplyr::mutate(eso=paste0(id_proc_sel,"_",titulos)) %>% 
+#     dplyr::group_by(eso) %>% 
+#     dplyr::mutate(n_eso=n()) %>% 
+#     dplyr::filter(n_eso>1) %>% 
+#     dplyr::ungroup()
 
 
   #daniela estay zorricueta y carla astudillo moscoso
@@ -836,21 +910,22 @@ Se sigue reemplazando aquellas entradas que tienen más de un espacio de manera 
 ```{r 7, echo=T, paged.print=TRUE,eval=T}
 #[a723 - a724 - a725 - a726] bibliotecario(a)
 #[a683-a684-a685-a686-a687-a688] mayordomo(a)
+names(part_6)[grepl("proceso de",names(part_6))]<- "proc_sel"
 
 part_7 <-
   part_6 %>% 
-  dplyr::mutate(`proceso de seleccion`=gsub("interno\\,", "interno", `proceso de seleccion`)) %>%
+  dplyr::mutate(proc_sel=gsub("interno\\,", "interno", "proceso de seleccion")) %>%
   #distinct(`proceso de seleccion`) %>% 
-  dplyr::mutate(estado=dplyr::case_when(`proceso de seleccion`=="desierto"~"desierto",T~estado)) %>% 
-  dplyr::mutate(`proceso de seleccion`=dplyr::case_when(`proceso de seleccion`=="desierto"~NA_character_,T~`proceso de seleccion`)) %>% 
-  #dplyr::filter(`proceso de seleccion`=="desierto")
+  dplyr::mutate(estado=dplyr::case_when(proc_sel=="desierto"~"desierto",T~estado)) %>% 
+  dplyr::mutate(proc_sel=dplyr::case_when(proc_sel=="desierto"~NA_character_,T~proc_sel)) %>% 
+  #dplyr::filter("proc_sel"=="desierto")
   dplyr::mutate(estado=gsub("\\,|\\*", "", estado)) %>%
   dplyr::mutate(estado=gsub("finlizado","finalizado", estado)) %>%
   dplyr::mutate(estado=gsub("finalizados","finalizado", estado)) %>%
   dplyr::mutate(estado=gsub("finalizada","finalizado", estado)) %>%
   #dplyr::filter(estado=="claudia pizarro vera"|estado=="luciano leyton silva")
   dplyr::mutate(estado=stringr::str_trim(estado)) %>%
-  dplyr::mutate(`proceso de seleccion`=dplyr::case_when(`proceso de seleccion`=="desierto" & id_proc=="[a723 - a724 - a725 - a726] bibliotecario(a)"~"Interno",T~`proceso de seleccion`))%>% 
+  dplyr::mutate(proc_sel=dplyr::case_when(proc_sel=="desierto" & id_proc=="[a723 - a724 - a725 - a726] bibliotecario(a)"~"Interno",T~"proc_sel"))%>% 
   dplyr::mutate(sel1=dplyr::case_when(estado=="claudia pizarro vera"~"claudia pizarro vera",T~sel1)) %>% 
   dplyr::mutate(sel1=dplyr::case_when(estado=="luciano leyton silva"~"luciano leyton silva",T~sel1)) %>% 
   dplyr::mutate(sel1=dplyr::case_when(estado=="ana maria leiva orellana"~"ana maria leiva",T~sel1)) %>% 
@@ -1232,16 +1307,16 @@ Adicionalmente, se eliminaron usuarios que tuvieran datos perdidos en la fecha d
 
 ```{r 18-desc1, echo=T, paged.print=TRUE,eval=T, fig.align="center", fig.cap="Seleccionados en procesos"}
 part_16 %>% group_by(id_seleccionado) %>% 
-  summarise(n()) %>%  janitor::tabyl(`n()`) %>% 
+  summarise(cnt=n()) %>%  janitor::tabyl(cnt) %>% 
   dplyr::ungroup()%>%
-  dplyr::mutate(valid_percent=scales::percent(n/(sum(n)-sum(n[is.na(`n()`)])),2),
-                valid_percent=ifelse(is.na(`n()`),NA,valid_percent),
+  dplyr::mutate(valid_percent=scales::percent(n/(sum(n)-sum(n[is.na(cnt])),2),
+                valid_percent=ifelse(is.na(cnt),NA,valid_percent),
                 percent=scales::percent(n/(sum(n)),2)) %>% 
-  dplyr::mutate(label=dplyr::case_when(`n()`==1~paste0("Seleccionados en un\nproceso\n",percent,"(n=",n,")"),
-                                       `n()`==2~paste0("Seleccionados en 2\nprocesos\n",percent,"(n=",n,")"),
-                                       `n()`==3~paste0("Seleccionados en 3\nprocesos\n",percent,"(n=",n,")")
+  dplyr::mutate(label=dplyr::case_when(cnt==1~paste0("Seleccionados en un\nproceso\n",percent,"(n=",n,")"),
+                                       cnt==2~paste0("Seleccionados en 2\nprocesos\n",percent,"(n=",n,")"),
+                                       cnt==3~paste0("Seleccionados en 3\nprocesos\n",percent,"(n=",n,")")
                                        )) %>% 
-  plot_ly(labels = ~`n()`, values = ~n, type = 'pie',hole = 0.6,textposition = 'outside',textinfo = 'text', sort = FALSE,
+  plot_ly(labels = ~cnt, values = ~n, type = 'pie',hole = 0.6,textposition = 'outside',textinfo = 'text', sort = FALSE,
           automargin = TRUE,
           text = ~label,
           direction = "clockwise",
