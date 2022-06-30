@@ -1327,12 +1327,7 @@ part_16 %>% group_by(id_seleccionado) %>%
           textfont = list(color = "black", size = 13),
           marker = list(colors = gray.colors(3))) %>%
   layout(yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T)) %>% 
-  layout(showlegend = FALSE, list(size = 14,color = 'blue'))%>% 
-  layout(title="Seleccionados en\nprocesos de selección de personal\n ",font=list(
-    family = "sans serif",
-    size = 14,
-    color = 'black')) %>% 
-  layout(autosize = T, margin=list( l = 50, r = 50, b = 100, t = 250,  pad = 4))
+  layout(showlegend = FALSE, list(size = 14,color = 'blue'), title="Seleccionados en\nprocesos de selección de personal\n ",font=list(family = "sans serif",size = 14,color = 'black'), autosize = T, margin=list( l = 50, r = 50, b = 100, t = 250,  pad = 4))
 ```
 
 <br>
