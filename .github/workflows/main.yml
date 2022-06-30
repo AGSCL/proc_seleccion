@@ -35,9 +35,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-
       - name: Install dependencies
-  	### vv new line
-	if: steps.cache.outputs.cache-hit != 'true'
-	### ^^ new line
+        ### vv new line
+        if: steps.cache.outputs.cache-hit != 'true'
+        ### ^^ new line
         run: |
           install.packages(c("lintr", "rsconnect", "devtools",
           "tidyverse", "distill", "plotly", "knitr",
