@@ -1313,7 +1313,7 @@ Adicionalmente, se eliminaron usuarios que tuvieran datos perdidos en la fecha d
 part_16 %>% group_by(id_seleccionado) %>% 
   summarise(cnt=n()) %>%  janitor::tabyl(cnt) %>% 
   dplyr::ungroup()%>%
-  dplyr::mutate(valid_percent=scales::percent(n/(sum(n)-sum(n[is.na(cnt])),2),
+  dplyr::mutate(valid_percent=scales::percent(n/(sum(n)-sum(n[is.na(cnt)])),2),
                 valid_percent=ifelse(is.na(cnt),NA,valid_percent),
                 percent=scales::percent(n/(sum(n)),2)) %>% 
   dplyr::mutate(label=dplyr::case_when(cnt==1~paste0("Seleccionados en un\nproceso\n",percent,"(n=",n,")"),

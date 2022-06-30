@@ -2,8 +2,8 @@ name: Render and Deploy RMarkdown Website
 on:
   push:
   schedule:
-    - cron: '0 0 * * MON' #http://www.cronmaker.com/?0
-jobs:
+    - cron: '0 0 * * MON' #http://www.cronmaker.com/?0 https://crontab.guru/every-monday #https://github.com/actions/cache  https://github.com/actions/cache/blob/main/examples.md#r---renv
+jobs: 
   build:
     runs-on: windows-latest
     strategy:
