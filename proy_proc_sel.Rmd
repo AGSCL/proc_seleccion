@@ -122,7 +122,8 @@ if(!require(readxl)){install.packages("readxl")}
 if(!require(janitor)){install.packages("janitor")}
 if(!require(DT)){install.packages("DT")}
 if(!require(tibble)){install.packages("tibble")}
-  
+if(!require(guaguas)){install.packages("guaguas")}
+
 copiar_nombres <- function(x,row.names=FALSE,col.names=TRUE,dec=",",...) {
   if(class(ungroup(x))[1]=="tbl_df"){
     if(options()$OutDec=="."){
@@ -1244,8 +1245,11 @@ Para contar con la variable sexo, se debieron interpretar los nombres de cada se
 conversion_sex <- readr::read_delim("http://prueba2misp.6te.net/conversion_sex.csv", 
     delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
+library(guaguas)
+
 perc_guaguas<-
 guaguas %>% 
+  dplyr::filter(anio>=1980, anio<=2005) %>% 
     dplyr::group_by(nombre) %>% 
     dplyr::mutate(perc_m=length(n[sexo=="F"])/n()) %>%
     dplyr::mutate(perc_h=length(n[sexo=="M"])/n()) %>% 
