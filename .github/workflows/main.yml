@@ -44,10 +44,9 @@ jobs:
       - name: Render Site
         run: rmarkdown::render("proy_proc_sel.Rmd")
         shell: Rscript {0}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.PAT }}
-	  ref: ${{ github.head_ref }}
       - name: Commit files
         run: |
           git config --local core.autocrlf false
