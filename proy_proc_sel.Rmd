@@ -1320,14 +1320,13 @@ part_16 %>% group_by(id_seleccionado) %>%
                                        cnt==2~paste0("Seleccionados en 2\nprocesos\n",percent,"(n=",n,")"),
                                        cnt==3~paste0("Seleccionados en 3\nprocesos\n",percent,"(n=",n,")")
                                        )) %>% 
-  plot_ly(labels = ~cnt, values = ~n, type = 'pie',hole = 0.6,textposition = 'outside',textinfo = 'text', sort = FALSE,
+  plot_ly(labels = ~cnt, values = ~n, type = 'pie',hole = 0.4,textposition = 'outside',textinfo = 'text', sort = FALSE,
           automargin = TRUE,
           text = ~label,
           direction = "clockwise",
           textfont = list(color = "black", size = 13),
           marker = list(colors = gray.colors(3))) %>%
-  layout(yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T)) %>% 
-  layout(showlegend = FALSE, list(size = 14,color = 'blue'), title="Seleccionados en\nprocesos de selección de personal\n ",font=list(family = "sans serif",size = 14,color = 'black'), autosize = T, margin=list( l = 50, r = 50, b = 100, t = 250,  pad = 4))
+  layout(yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T), showlegend = FALSE,autosize = T)
 ```
 
 <br>
