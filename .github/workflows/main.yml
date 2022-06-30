@@ -19,6 +19,8 @@ jobs:
     steps:
       - run: echo "$GITHUB_CONTEXT"
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Set up R ${{ matrix.r-version }}		
         uses: r-lib/actions/setup-r@master
         with:
@@ -48,16 +50,13 @@ jobs:
       - name: Render Site
         run: rmarkdown::render("proy_proc_sel.Rmd")
         shell: Rscript {0}
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Commit files
         run: |
           git config --local user.email "${{ github.actor }}@users.noreply.github.com"
           git config --local user.name "${{ github.actor }}"
           git add . && git add --renormalize .
           git commit --allow-empty -am "AUTO-GH ACTION: ${{ github.workflow }} $(date)"
-      - name: Push changes to gh-pages
+      - name: Push changes
         uses: ad-m/github-push-action@master
         with:
           force: true
