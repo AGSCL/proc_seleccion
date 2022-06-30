@@ -123,6 +123,7 @@ if(!require(janitor)){install.packages("janitor")}
 if(!require(DT)){install.packages("DT")}
 if(!require(tibble)){install.packages("tibble")}
 if(!require(guaguas)){install.packages("guaguas")}
+if(!require(plotly)){install.packages("plotly")}
 
 copiar_nombres <- function(x,row.names=FALSE,col.names=TRUE,dec=",",...) {
   if(class(ungroup(x))[1]=="tbl_df"){
@@ -1326,7 +1327,7 @@ part_16 %>% group_by(id_seleccionado) %>%
           direction = "clockwise",
           textfont = list(color = "black", size = 13),
           marker = list(colors = gray.colors(3))) %>%
-  layout(yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T), showlegend = FALSE,autosize = T)
+  plotly::layout(yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T), showlegend = FALSE,autosize = T)
 ```
 
 <br>
