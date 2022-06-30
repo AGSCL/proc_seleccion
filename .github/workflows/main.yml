@@ -29,7 +29,6 @@ jobs:
       - name: Install packages
         run: |
           install.packages("lintr")
-          lintr::lint_dir()
           install.packages("devtools")
           install.packages("rmarkdown")
           install.packages("knitr")
