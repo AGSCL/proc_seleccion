@@ -27,13 +27,13 @@ jobs:
           r-version: ${{ matrix.r-version }}
       - uses: r-lib/actions/setup-pandoc@v1
       - name: Cache R packages
-	id: cache
-	uses: actions/cache@v2
-	with:
-	  path: ${{ env.R_LIBS_USER }}
-	  key: ${{ runner.os }}-shinydoc
-	  restore-keys: |
-	    ${{ runner.os }}-
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-shinydoc
+          restore-keys: |
+            ${{ runner.os }}-
       - name: Install dependencies
   	### vv new line
 	if: steps.cache.outputs.cache-hit != 'true'
