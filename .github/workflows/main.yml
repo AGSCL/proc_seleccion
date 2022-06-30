@@ -57,8 +57,4 @@ jobs:
           git config --local user.name "${{ github.actor }}"
           git add . && git add --renormalize .
           git commit --allow-empty -am "AUTO-GH ACTION: ${{ github.workflow }}"
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          branch: ${{ github.head_ref }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+	  git push
