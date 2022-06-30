@@ -19,32 +19,45 @@ jobs:
     steps:
       - run: echo "$GITHUB_CONTEXT"
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Set up R ${{ matrix.r-version }}		
         uses: r-lib/actions/setup-r@master
         with:
           r-version: ${{ matrix.r-version }}
       - uses: r-lib/actions/setup-pandoc@v1
-      - name: Install packages
-        run: |
-          install.packages("lintr")
-          install.packages("devtools")
-          install.packages("rmarkdown")
-          install.packages("knitr")
-          install.packages("distill")
-          install.packages("withr")
-          shell: Rscript {0}
+      - name: Install lintr
+        run: install.packages("lintr")
+        shell: Rscript {0}
+      - name: LINT
+        run: lintr::lint_dir()
+        shell: Rscript {0}
+      - name: Install devtools
+        run: install.packages("devtools")
+        shell: Rscript {0}
+      - name: Install rmarkdown
+        run: install.packages("rmarkdown")
+        shell: Rscript {0}
+      - name: Install knitr
+        run: install.packages("knitr")
+        shell: Rscript {0}
+      - name: Install distill
+        run: install.packages("distill")
+        shell: Rscript {0}
+      - name: Install withr
+        run: install.packages("withr")
+        shell: Rscript {0}
       - name: Render Site
         run: rmarkdown::render("proy_proc_sel.Rmd")
         shell: Rscript {0}
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Commit files
         run: |
           git config --local user.email "${{ github.actor }}@users.noreply.github.com"
           git config --local user.name "${{ github.actor }}"
-          git add . && git add --renormalize .
+          git add .
           git commit --allow-empty -am "AUTO-GH ACTION: ${{ github.workflow }} $(date)"
-      - name: Push changes
+      - name: Push changes to gh-pages
         uses: ad-m/github-push-action@master
         with:
           force: true
