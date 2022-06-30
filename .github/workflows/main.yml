@@ -14,8 +14,6 @@ jobs:
       RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Cuando corre
-	run: echo "Esto corre los lunes"	
       - uses: actions/checkout@v2
       - name: Set up R ${{ matrix.r-version }}		
         uses: r-lib/actions/setup-r@master
