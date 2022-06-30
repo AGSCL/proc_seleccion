@@ -462,6 +462,8 @@ Las bases de datos se obtuvieron desde el siguiente [enlace]("https://ddp.usach.
 
 <br>
 
+# `r withr::with_locale(new = c('LC_TIME' = 'C'), code =format(Sys.time(),'%B %d, %Y'))`
+
 # Consolidación de base de datos
 
 ## Paso 1. Limpiar las variables
