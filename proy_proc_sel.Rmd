@@ -124,6 +124,8 @@ if(!require(DT)){install.packages("DT")}
 if(!require(tibble)){install.packages("tibble")}
 if(!require(guaguas)){install.packages("guaguas")}
 if(!require(plotly)){install.packages("plotly")}
+if(!require(compareGroups)){install.packages("compareGroups")}
+if(!require(survival)){install.packages("survival")}
 
 copiar_nombres <- function(x,row.names=FALSE,col.names=TRUE,dec=",",...) {
   if(class(ungroup(x))[1]=="tbl_df"){
@@ -1505,7 +1507,7 @@ attr(part_17$vesp,"label")<-"Jornada Vespertina (1= Vespertina)"
 attr(part_17$fech_ter_num,"label")<-"Fecha (en números, días desde 01 de Enero de 1970)"
 
 
-table1_all <- suppressWarnings(compareGroups(sex ~ est+ grado_n+ fech_ter_num+ n_proc+ vesp, method= c(
+table1_all <- suppressWarnings(compareGroups::compareGroups(sex ~ est+ grado_n+ fech_ter_num+ n_proc+ vesp, method= c(
                                             grado_n=2,
                                             est=3,
                                             fech_ter_num=2,
@@ -1517,7 +1519,7 @@ table1_all <- suppressWarnings(compareGroups(sex ~ est+ grado_n+ fech_ter_num+ n
 )
 restab1_all <- createTable(table1_all, show.p.overall = T)
   
-export2md(restab1_all, size=11, first.strip=T, hide.no="no", position="center",
+compareGroups::export2md(restab1_all, size=11, first.strip=T, hide.no="no", position="center",
            format="html",caption= "Descriptivos de resumen por sexo",
           col.names=c("Variables","Hombres", "Mujeres", "Sig."))%>%
   kableExtra::add_footnote(c("Nota. Variables continuas se presentan en medianas y percentiles 25 y 75 en corchetes;", "Variables categóricas se presentan en recuentos (%)", "La fecha en formato numérico se obtuvo como los días desde el origen de 1970-01-01"), notation = "none")%>%
