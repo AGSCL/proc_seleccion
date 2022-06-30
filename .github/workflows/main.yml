@@ -19,38 +19,33 @@ jobs:
     steps:
       - run: echo "$GITHUB_CONTEXT"
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Set up R ${{ matrix.r-version }}		
         uses: r-lib/actions/setup-r@master
         with:
           r-version: ${{ matrix.r-version }}
       - uses: r-lib/actions/setup-pandoc@v1
-      - name: Install lintr
-        run: install.packages("lintr")
-        shell: Rscript {0}
-      - name: LINT
-        run: lintr::lint_dir()
-        shell: Rscript {0}
-      - name: Install devtools
-        run: install.packages("devtools")
-        shell: Rscript {0}
-      - name: Install rmarkdown
-        run: install.packages("rmarkdown")
-        shell: Rscript {0}
-      - name: Install knitr
-        run: install.packages("knitr")
-        shell: Rscript {0}
-      - name: Install distill
-        run: install.packages("distill")
-        shell: Rscript {0}
-      - name: Install withr
-        run: install.packages("withr")
+      - name: Cache R packages
+	id: cache
+	uses: actions/cache@v2
+	with:
+	  path: ${{ env.R_LIBS_USER }}
+	  key: ${{ runner.os }}-shinydoc
+	  restore-keys: |
+	    ${{ runner.os }}-
+      - name: Install dependencies
+  	### vv new line
+	if: steps.cache.outputs.cache-hit != 'true'
+	### ^^ new line
+        run: |
+          install.packages(c("lintr", "rsconnect", "devtools",
+          "tidyverse", "distill", "plotly", "knitr",
+          "withr", "rmarkdown"))
         shell: Rscript {0}
       - name: Render Site
         run: rmarkdown::render("proy_proc_sel.Rmd")
         shell: Rscript {0}
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Commit files
         run: |
           git config --local user.email "${{ github.actor }}@users.noreply.github.com"
