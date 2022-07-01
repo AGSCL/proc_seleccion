@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up R ${{ matrix.r-version }}		
-        uses: r-lib/actions/setup-r@v3
+        uses: r-lib/actions/setup-r@master
         with:
           r-version: ${{ matrix.r-version }}
       - name: Cache R packages
