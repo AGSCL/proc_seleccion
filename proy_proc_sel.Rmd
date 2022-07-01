@@ -127,6 +127,7 @@ if(!require(guaguas)){install.packages("guaguas")}
 if(!require(plotly)){install.packages("plotly")}
 if(!require(compareGroups)){install.packages("compareGroups")}
 if(!require(survival)){install.packages("survival")}
+if(!require(survminer)){install.packages("survminer")}
 
 copiar_nombres <- function(x,row.names=FALSE,col.names=TRUE,dec=",",...) {
   if(class(ungroup(x))[1]=="tbl_df"){
