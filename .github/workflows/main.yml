@@ -25,19 +25,8 @@ jobs:
         uses: r-lib/actions/setup-r@master
         with:
           r-version: ${{ matrix.r-version }}
-      - name: Cache R packages
-        id: cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-shinydoc
-          restore-keys: |
-            ${{ runner.os }}-
       - uses: r-lib/actions/setup-pandoc@v1
       - name: Install dependencies
-        ### vv new line
-        if: steps.cache.outputs.cache-hit != 'true'
-        ### ^^ new line
         run: |
           install.packages(c("lintr", "rsconnect", "devtools",
           "tidyverse", "distill", "plotly", "knitr", "survminer",
