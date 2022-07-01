@@ -702,8 +702,11 @@ part_3_2%>%
 <br>
 
 Para cada proceso de selección e información asociado a él, le asignamos un número de fila acorde. De ahí que notamos lo siguiente:
+
 - Los casos con 6 filas o les falta la fecha o les falta el estado
+
 - Los casos con 9 filas corresponde a un proceso con 2 seleccionados
+
 - El caso con 5 filas (1755) corresponde a un proceso que habría sido declarado desierto, o que se asumirá así 
 
 Adicionalmente, se corrigen algunos títulos de los campos de interés.
