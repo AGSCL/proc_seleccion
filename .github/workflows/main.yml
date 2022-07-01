@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up R ${{ matrix.r-version }}		
-        uses: r-lib/actions/setup-r@master
+        uses: r-lib/actions/setup-r@v3
         with:
           r-version: ${{ matrix.r-version }}
       - name: Cache R packages
@@ -32,7 +32,7 @@ jobs:
           path: ${{ env.R_LIBS_USER }}
           key: ${{ runner.os }}-shinydoc
           restore-keys: |
-            ${{ runner.os }}-
+            ${{ runner.os }}-r-lib/actions/setup-r@v3
       - uses: r-lib/actions/setup-pandoc@v1
       - name: Install dependencies
         ### vv new line
@@ -40,7 +40,7 @@ jobs:
         ### ^^ new line
         run: |
           install.packages(c("lintr", "rsconnect", "devtools",
-          "tidyverse", "distill", "plotly", "knitr",
+          "tidyverse", "distill", "plotly", "knitr", "survminer",
           "withr", "rmarkdown"))
         shell: Rscript {0}
       - name: Render Site

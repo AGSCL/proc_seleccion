@@ -96,6 +96,7 @@ p.comment {
 rm(list=ls());gc()
 ```
 
+<div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:350px; overflow-x: scroll; width:100%">
 ```{r setup,include=T}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -450,6 +451,7 @@ colnames(HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020_2)<-"HISTORIAL P
 
 options(knitr.kable.NA = '')
 ```
+</div>
 
 <br>
 
@@ -462,7 +464,7 @@ Las bases de datos se obtuvieron desde el siguiente [enlace]("https://ddp.usach.
 
 <br>
 
-# `r withr::with_locale(new = c('LC_TIME' = 'C'), code =format(Sys.time(),'%B %d, %Y'))`
+# `r format(Sys.time(),'%B %d, %Y')`
 
 # Consolidación de base de datos
 
