@@ -39,7 +39,7 @@ jobs:
           install.packages(c("lintr", "rsconnect", "devtools",
           "tidyverse", "distill", "plotly", "knitr", "survminer",
           "withr", "rmarkdown"))
-          run: rmarkdown::render("proy_proc_sel.Rmd")
+          rmarkdown::render("proy_proc_sel.Rmd")
         shell: Rscript {0}
       - name: Commit files
         run: |
