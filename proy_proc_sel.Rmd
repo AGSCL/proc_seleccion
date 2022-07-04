@@ -98,6 +98,11 @@ rm(list=ls());gc()
 
 <div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:350px; overflow-x: scroll; width:100%">
 ```{r setup,include=T}
+Sys.setlocale("LC_COLLATE", "Spanish_Chile.1252")
+Sys.setlocale("LC_COLLATE", "Spanish_Chile.1252")
+Sys.setlocale("LC_CTYPE", "Spanish_Chile.1252")
+Sys.setlocale("LC_MONETARY", "Spanish_Chile.1252")
+Sys.setlocale("LC_TIME", "Spanish_Chile.1252")
 knitr::opts_chunk$set(echo = TRUE)
 
 if(!require(ggplot2)){install.packages("ggplot2")}
