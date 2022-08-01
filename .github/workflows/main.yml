@@ -36,9 +36,10 @@ jobs:
           Sys.setlocale("LC_CTYPE", "Spanish_Chile.1252")
           Sys.setlocale("LC_MONETARY", "Spanish_Chile.1252")
           Sys.setlocale("LC_TIME", "Spanish_Chile.1252")
-          install.packages(c("lintr", "rsconnect", "devtools",
-          "tidyverse", "distill", "plotly", "knitr", "survminer",
-          "withr", "rmarkdown"), type = "source")
+          install.packages("pacman")
+          pacman::p_install(c(lintr, rsconnect, devtools,
+          tidyverse, distill, plotly, knitr, survminer,
+          withr, rmarkdown))
           rmarkdown::render("proy_proc_sel.Rmd")
         shell: Rscript {0}
       - name: Commit files
