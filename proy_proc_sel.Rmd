@@ -1303,7 +1303,7 @@ part_15%>%
 
 <br>
 
-De igual manera, se anonimizan los datos de personas seleccionadas, se ordena la base de datos por id_seleccionado y fecha de termino del proceso de selección. De igual manera, se eliminaron los espacios en blanco en el el estamento.
+De igual manera, se anonimizan los datos de personas seleccionadas, se ordena la base de datos por id_seleccionado y fecha de termino del proceso de selección. Asimismo, se eliminaron los espacios en blanco en el el estamento.
 
 <br>
 
@@ -1589,7 +1589,7 @@ sex_irr <-irrs(x="sex", z="diff_bet_proc", y="event_n>0", db="part_17")
 
 <br>
 
-La razón de tasas de densidad de incidencia de aumentar grado o profesionalizarse en mujeres es `r round(as.numeric(sex_irr$estimate[1]),2)` veces mayor que hombres (95% IC `r round(sex_irr$conf.int[1],2)`-`r round(sex_irr$conf.int[2],2)`; p`r ifelse(sprintf("%1.3f",sex_irr$p.value)=="0.000","<0.001",paste0("= ", sprintf("%1.3f",sex_irr$p.value)))`), aunque no es significativo.
+La razón de tasas de densidad de incidencia de aumentar grado o profesionalizarse en mujeres es `r round(as.numeric(sex_irr$estimate[1]),2)` veces mayor que hombres (95% IC `r round(sex_irr$conf.int[1],2)`-`r round(sex_irr$conf.int[2],2)`; p`r ifelse(sprintf("%1.3f",sex_irr$p.value)=="0.000","<0.001",paste0("= ", sprintf("%1.3f",sex_irr$p.value)))`), aunque la banda inferior se superpone con el valor nulo.
 
 <br>
 
