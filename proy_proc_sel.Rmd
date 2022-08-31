@@ -600,15 +600,8 @@ Apuntamos a separar por filas y columnas ciertas secciones estandarizadas: títu
 #Power Simulation
 #References
 
-HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020[220:250,] %>% 
-  knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Muestra"),
-               align =c('l',rep('c', 101)))%>%
-    kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 10) %>%
-  kableExtra::add_footnote(c("Nota. "),
-                            notation = "none")%>%
-  kableExtra::kable_classic() %>% 
-  kableExtra::scroll_box(width = "100%", height = "375px") 
+HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020[220:250,]%>% 
+  knitr::kable(size=12, format="markdown")
 ```
 
 <br>
@@ -717,7 +710,7 @@ if(part_2 %>%
 
 part_2%>%
   dplyr::slice(1:400)  %>% 
-  kable(size=12, format="markdown")
+  knitr::kable(size=12, format="markdown")
 # 
 # dplyr::filter(part_2,grepl("\\[.*\\-.*\\]",`1`),!grepl("acta20|ir20",`1`)) %>% dplyr::select(rn)
 # 1: 13126
@@ -797,7 +790,7 @@ dplyr::bind_rows(part_3_correct[,names(part_3)]) %>%
 
 part_3_2%>%
   dplyr::slice(1:400) %>% 
-  kable(size=12, format="markdown")
+  knitr::kable(size=12, format="markdown")
 ```
 :::
 	
