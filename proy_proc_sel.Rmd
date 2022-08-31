@@ -35,61 +35,171 @@ script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
       $('.zoomDiv').css({opacity: '0', width: '0%'}); 
     });
   });
+  
+```
+
+```{css hideOutput-lib-src, echo = FALSE}
+<script src="hideOutput.js"></script> 
+```
+
+```{js hideOutput, echo = FALSE}
+$(document).ready(function() {    
+	$chunks = $('.fold');    
+	$chunks.each(function () {      // add button to source code chunks     
+	if ( $(this).hasClass('s') ) {       
+		$('pre.r', this).prepend("<div class=\"showopt\">Show Source</div><br style=\"line-height:22px;\"/>");
+       		$('pre.r', this).children('code').attr('class', 'folded');     
+       		}      // add button to output chunks     
+		if ( $(this).hasClass('o') ) {       
+			$('pre:not(.r)', this).has('code').prepend("<div class=\"showopt\">Show Output</div><br style=\"line-height:22px;\"/>");       
+			$('pre:not(.r)', this).children('code:not(r)').addClass('folded');        // add button to plots       
+			$(this).find('img').wrap('<pre class=\"plot\"></pre>');       
+			$('pre.plot', this).prepend("<div class=\"showopt\">Show Plot</div><br style=\"line-height:22px;\"/>");       
+			$('pre.plot', this).children('img').addClass('folded');      
+			}   
+});    // hide all chunks when document is loaded   
+	$('.folded').css('display', 'none')    // function to toggle the visibility   
+	$('.showopt').click(function() {     
+			var label = $(this).html();     
+			if (label.indexOf("Show") >= 0) {       
+				$(this).html(label.replace("Show", "Hide"));     
+			} else {
+			  $(this).html(label.replace("Hide", "Show"));     
+			}     
+	$(this).siblings('code, img').slideToggle('fast', 'swing');   
+	}); 
+}); 
+
 ```
 
 ```{=html}
 <style type="text/css">
-.tablelines table, .tablelines td, .tablelines th {
-  border: 1px solid black;
+.showopt {   
+  background-color: #004c93;   color: #FFFFFF;    width: 100px;   height: 20px;   text-align: center;   vertical-align: middle !important;   float: right;   font-family: sans-serif;   border-radius: 8px; 
   }
+
+.showopt:hover {     
+        background-color: #dfe4f2;
+        color: #004c93; 
+        }  
+pre.plot {   
+        background-color: white !important; 
+        } 
+.tablelines table, .tablelines td, .tablelines th {
+        border: 1px solid black;
+        }
+
 .centrado {
-  text-align: center;
+    text-align: center;
 }
+
 .table.center {
-  margin-left:auto; 
-  margin-right:auto;
+    margin-left:auto; 
+    margin-right:auto;
+  }
+
+/* https://vivekjaiskumar.medium.com/css-is-and-not-selector-17c942ec83f :is()*/
+
+/* Applies to outputs that are not code other than R*/
+
+pre {
+  overflow-x: auto !important;
 }
-.table_wrapper{
-  display: block;
-  overflow-x: auto;
-  white-space: nowrap;
+pre code {
+  word-wrap: normal !important;
+  white-space: pre !important;
 }
-code.r{
-  font-size: 8px;
+/*
+pre:not(.sourceCode) { 
+  white-space: nowrap !important;
 }
+*/
+.sourceCode { /* Important gives precedence  */
+  font-size: 10px !important;
+  line-height: 50% !important;
+}
+
 body{ /* Normal  */
-    text-align: justify;
-}
+      text-align: justify;
+  }
+
 .superbigimage{
-  overflow-y:scroll;
-  white-space: nowrap;
+    overflow-y:scroll;
+    height:350px;
+    white-space: nowrap;
+    overflow-x: auto; 
+    width:100%;
 }
 .superbigimage img{
-  overflow-y: scroll;
-  overflow-x: hidden;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
-p.comment {
-  background-color: #FF7F79;
-    padding: 10px;
-  border: 1px solid black;
-  margin-left: 25px;
-  border-radius: 5px;
-  font-style: italic;
+
+.message { color:#446C6E; font-family: monospace;font-size: 10px; line-height: 110%; font-weight: bold;}
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 5px; text-align: justify;}
+div.red { background-color:#e6bab1; border-radius: 5px; padding: 5px; text-align: justify;}
+
+.pandoc-table { /* Should add !important; but it seems no necessary  */
+  margin-left:auto; /* To center */
+  margin-right:auto;
+  border-collapse: collapse;
+  table-layout: auto;
+  font-size: 11px;
+  overflow-y: auto;
+  max-height:450px !important;
+  white-space: nowrap;
+  overflow-x: auto; 
+  width:450px;
 }
+
+.pandoc-table th {/* header */
+text-align: center !important;
+font-size: 10px;
+padding: 0px;
+}
+
+.pandoc-table td {
+text-align: left !important;
+font-size: 9px;
+padding: 0px;
+}
+
+.pandoc-table caption {
+    text-align: left !important;
+    font-size: 11px !important;
+}
+
+.controlly{
+    overflow-y:scroll;
+    height:350px;
+    overflow-x: scroll; 
+}
+
 </style>
 ```
 ```{=html}
-<style>
-  p.comment {
-    background-color: #ff9a9a;
-      padding: 10px;
-    border: 1px solid red;
-    margin-left: 25px;
-    border-radius: 5px;
-    font-style: italic;
-  }
+<!-- We gotta do each function to hide code and outputs per section, by every ID, we gotta create a different function -->
+<script>
+function myFunction1() {
+    var x = document.getElementById("myDIV");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
+    }
+}
+</script>
 
-</style>
+<script>
+function myFunction2() {
+    var x = document.getElementById("myDIV2");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
+    }
+}
+</script>
 ```
 
 ```{r setup0,include=T}
@@ -507,6 +617,7 @@ Por tanto, trabajaremos en la homologación y estructuración de los datos.
 
 <br>
 
+::: controlly
 ```{r 1, echo=T, paged.print=TRUE,eval=T}
 part_1<-
   bind_rows(HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020, HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020_2) %>% 
@@ -605,15 +716,8 @@ if(part_2 %>%
 # [a548]-[a549] abogada/o dirección jurídica 
 
 part_2%>%
-  dplyr::slice(1:400) %>% 
-  knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0(""),
-                align =c('l',rep('c', 101)))%>%
-     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
-     kableExtra::add_footnote(c("Nota. "),
-                              notation = "none")%>%
-     kableExtra::kable_classic()%>%
-     kableExtra::scroll_box(width = "100%", height = "375px")
+  dplyr::slice(1:400)  %>% 
+  kable(size=12, format="markdown")
 # 
 # dplyr::filter(part_2,grepl("\\[.*\\-.*\\]",`1`),!grepl("acta20|ir20",`1`)) %>% dplyr::select(rn)
 # 1: 13126
@@ -625,13 +729,15 @@ part_2%>%
 # 7: 14010
 # part_2 %>% dplyr::filter(rn %in% (13546-15):(13546+15))
 ```
-
+:::
+	
 <br>
 
 Generamos columnas con un código único para identificar cada proceso de selección llamado `id_proc_sel`. Adicionalmente, dejamos que toda la información concerniente a cada proceso esté agrupado en la columna `títulos`, y que la columna `cargo` se replique para cada campo de cada proceso. Por el momento, nuestra base de datos se encuentra en formato largo. Por otra parte, los procesos de selección "al rango" e "interno dirigido" se recodificaron como "interno" dado que la mayoría de los procesos incluían esa modalidad de entrega. Por último, [a438] administrativo/a de cobranzas está duplicado. Para prevenir esto, generamos una base de datos que corrigiera todos los procesos que por alguna razón tuvieran campos totalmente duplicados (incluso el id del proceso)
 
 <br>
 
+::: controlly
 ```{r 3, echo=T, paged.print=TRUE,eval=T}
 #[a683-a684-a685-a686-a687-a688] mayordomo(a) - ejemplo de que está bien
 #"gina carmona gonzalez - daniela mora ayala - maria diaz gonzalez" --> no se acopla al formato
@@ -683,27 +789,18 @@ part_3_correct<-
   dplyr::mutate(id_proc_sel=sprintf("%04d",as.numeric(max(part_3$id_proc_sel, na.rm=T))+rn)) %>% 
   dplyr::mutate(id_control_dup2=paste0(id_proc_sel_original,"__",cargo,"__",titulos,"__",n_fila_dup)) 
 
-
 part_3_2<-
 part_3 %>% 
 dplyr::filter(!id_control_dup2 %in% unique(part_3_correct$id_control_dup2)) %>% 
 dplyr::bind_rows(part_3_correct[,names(part_3)]) %>% 
   dplyr::mutate(id_control_dup2=paste0(id_proc_sel,"__",cargo,"__",titulos,"__",n_fila_dup))
 
-
-
 part_3_2%>%
   dplyr::slice(1:400) %>% 
-  knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0("Primeros 400 casos"),
-                align =c('l',rep('c', 101)))%>%
-     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
-     kableExtra::add_footnote(c("Nota. "),
-                              notation = "none")%>%
-     kableExtra::kable_classic()%>%
-     kableExtra::scroll_box(width = "100%", height = "375px")
+  kable(size=12, format="markdown")
 ```
-
+:::
+	
 <br>
 
 Para cada proceso de selección e información asociado a él, le asignamos un número de fila acorde. De ahí que notamos lo siguiente:
@@ -720,6 +817,7 @@ Posteriormente se tendrá que tener cuenta aquellos procesos que tienen más de 
 
 <br>
 
+::: controlly
 ```{r 4, echo=T, paged.print=TRUE,eval=T}
 #2022
 #1950  1835 1755 (debiese ser un proceso separado del a749 )
@@ -791,23 +889,18 @@ part_4<-
 
 part_4%>%
     dplyr::slice(1:400) %>% 
-  knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0("Primeros 400 casos"),
-                align =c('l',rep('c', 101)))%>%
-     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
-     kableExtra::add_footnote(c("Nota. "),
-                              notation = "none")%>%
-     kableExtra::kable_classic()%>%
-     kableExtra::scroll_box(width = "100%", height = "375px")
+  knitr::kable(format = "markdown", size=12)
 
 ```
-
+:::
+	
 <br>
 
 La columna seleccionado, se separa por columnas para aquellos casos que tienen más de un seleccionado por proceso. De igual manera, se se eliminan los espacios al inicio y al final de los nombres. Si en la segunda columna de los seleccionados hay caracteres residuales con un largo menor a 2 (ej., un espacio), se considera como valor perdido. Luego, se separa el identificador del proceso de selección en 3 columnas: `id_pub` concerniente al proceso de selección, el `id_proc` que tiene que ver con la denominación y código de recursos humanos del proceso, y el `n_filas` o el número de filas por cada proceso.
 
 <br>
 
+::: controlly	
 ```{r 5, echo=T, paged.print=TRUE,eval=T}
 ##	[a723 - a724 - a725 - a726] bibliotecario(a) --> pierde el primer usuario
 #[a723 - a724 - a725 - a726] bibliotecario(a)
@@ -825,17 +918,10 @@ part_5<-
 
 part_5%>%
     dplyr::slice(1:400) %>% 
-  knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0("Primeros 400 casos"),
-                align =c('l',rep('c', 101)))%>%
-     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
-     kableExtra::add_footnote(c("Nota. "),
-                              notation = "none")%>%
-     kableExtra::kable_classic()%>%
-     kableExtra::scroll_box(width = "100%", height = "375px")
-
+  knitr::kable(format = "markdown", size=12)
 ```
-
+:::
+	
 <br>
 
 De todas maneras, se pesquisaron ciertos errores de tipeo (ej. administrivo), convenciones distintas para denominar categorías que llevarían a ambiguedad de no modificarse (ej. 15,076 vs. 15076), junto con espacios y comas. Por último, se estandarizó el estamento al cual corresponde el proceso de selección.
@@ -957,6 +1043,7 @@ Se agregan variables que permitan distinguir si son procesos para puestos en jor
 
 <br>
 
+::: controlly	
 ```{r 8, echo=T, paged.print=TRUE,eval=T}
 part_8 <-
   part_7 %>% 
@@ -1004,16 +1091,10 @@ part_8 <-
 
 part_8%>%
   dplyr::slice(1:400) %>% 
-  knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-                caption = paste0("Primeros 400 casos"),
-                align =c('l',rep('c', 101)))%>%
-     kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
-     kableExtra::add_footnote(c("Nota. "),
-                              notation = "none")%>%
-     kableExtra::kable_classic()%>%
-     kableExtra::scroll_box(width = "100%", height = "375px")
+  knitr::kable(format = "markdown", size=12)
 ```
-
+:::
+	
 <br>
 
 Para separar adecuadamente las fechas, primero hay que limpiarla adecuadamente. En este caso, se corrige el formato de las fechas, de manera que no hayan espacios adicionales, se eliminan los valores erróneos (ej., cerrado).
@@ -1040,6 +1121,7 @@ Se continúa la estandarización de fechas mediante casos más específicos y ba
 
 <br>
 
+::: controlly
 ```{r 10, echo=T, paged.print=TRUE,eval=T}
 part_10<-
 part_9 %>% 
@@ -1065,23 +1147,18 @@ part_9 %>%
 
 
 part_10 %>% 
-  dplyr::slice(1:400) %>%   
-    knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Primeros 400 casos"),
-               align =c('l',rep('c', 101)))%>%
-    kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
-  kableExtra::add_footnote(c("Nota. "),
-                            notation = "none")%>%
-  kableExtra::kable_classic()%>%
-    kableExtra::scroll_box(width = "100%", height = "375px")
+  dplyr::slice(1:400)%>% 
+  knitr::kable(format = "markdown", size=12)
 ```
-
+:::
+	
 <br>
 
 Se continúa la estandarización de fechas mediante casos más específicos y basados en la casuística y reemplazo aún más específicos.
 
 <br>
 
+::: controlly
 ```{r 11, echo=T, paged.print=TRUE,eval=T}
 
 part_11<-
@@ -1116,16 +1193,9 @@ part_10 %>%
 
 part_11 %>% 
   dplyr::slice(1:400) %>% 
-    knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Primeros 400 casos"),
-               align =c('l',rep('c', 101)))%>%
-    kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
-  kableExtra::add_footnote(c("Nota. "),
-                            notation = "none")%>%
-  kableExtra::kable_classic()%>%
-    kableExtra::scroll_box(width = "100%", height = "375px")
+  knitr::kable(format = "markdown", size=12)
 ```
-
+:::
 
 <br>
 
@@ -1170,6 +1240,7 @@ Mediante el comando `fuzzyjoin::stringdist_join`, buscamos de la lista de selecc
 
 <br>
 
+::: controlly
 ```{r 13b, echo=T, paged.print=TRUE,eval=T}
 
 fuzzyjoin::stringdist_join(data.frame(name=part_12$sel1), data.frame(name=part_12$sel1), 
@@ -1193,15 +1264,9 @@ fuzzyjoin::stringdist_join(data.frame(name=part_12$sel1), data.frame(name=part_1
   dplyr::mutate(name_conc2_lag=lag(name_conc2)) %>% 
   dplyr::filter(name_conc1!=name_conc2_lag) %>% 
   slice(1:20) %>% 
-    knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Comparación de nombres"),
-               align =c('l',rep('c', 101)))%>%
-    kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
-  kableExtra::add_footnote(c("Nota. "),
-                            notation = "none")%>%
-  kableExtra::kable_classic()%>%
-    kableExtra::scroll_box(width = "100%", height = "375px")
+  knitr::kable(format = "markdown", size=12)
 ```
+:::
 
 <br>
 
@@ -1257,6 +1322,7 @@ Para contar con la variable sexo, se debieron interpretar los nombres de cada se
 
 <br>
 
+::: controlly
 ```{r 16, echo=T, paged.print=TRUE,eval=T}
 conversion_sex <- readr::read_delim("http://prueba2misp.6te.net/conversion_sex.csv", 
     delim = ";", escape_double = FALSE, trim_ws = TRUE)
@@ -1290,17 +1356,11 @@ part_15 <-
                                      T~sex))
 
 part_15%>% 
-   dplyr::slice(1:400) %>%
-    knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
-               caption = paste0("Primeros 400 casos"),
-               align =c('l',rep('c', 101)))%>%
-    kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
-  kableExtra::add_footnote(c("Nota. "),
-                            notation = "none")%>%
-  kableExtra::kable_classic()%>%
-    kableExtra::scroll_box(width = "100%", height = "375px")
+   dplyr::slice(1:400) %>% 
+  knitr::kable(format = "markdown", size=12)
 ```
-
+:::
+	
 <br>
 
 De igual manera, se anonimizan los datos de personas seleccionadas, se ordena la base de datos por id_seleccionado y fecha de termino del proceso de selección. Asimismo, se eliminaron los espacios en blanco en el el estamento.
@@ -1932,8 +1992,6 @@ rbind.data.frame(cuminc_comp_table1, cuminc_comp_table2, cuminc_comp_table3, cum
    # geom_vline(xintercept=1095/365.25, color="darkred", linetype=2)
   labs(caption= "Note. There are no discharges after 1,095 days from the admission.")
 ```
-              
-
           
 <br>
 
@@ -1947,6 +2005,7 @@ save.image("__analisis.RData")
 
 unlink("*_cache", recursive = T, force = T, expand = TRUE)
 
+
 sesion_info <- devtools::session_info()
 dplyr::select(
   tibble::as_tibble(sesion_info$packages),
@@ -1955,10 +2014,17 @@ dplyr::select(
   DT::datatable(filter = 'top', colnames = c('Row number' =1,'Variable' = 2, 'Percentage'= 3),
               caption = htmltools::tags$caption(
         style = 'caption-side: top; text-align: left;',
-        '', htmltools::em('Paquetes estadísticos utilizados')),
+        '', htmltools::em('Packages')),
       options=list(
 initComplete = htmlwidgets::JS(
-      "function(settings, json) {",
-      "$(this.api().tables().body()).css({'font-size': '80%'});",
-      "}")))
+        "function(settings, json) {",
+        "$(this.api().tables().body()).css({
+            'font-family': 'Helvetica Neue',
+            'font-size': '50%', 
+            'code-inline-font-size': '15%', 
+            'white-space': 'nowrap',
+            'line-height': '0.75em',
+            'min-height': '0.5em'
+            });",#;
+        "}")))
 ```
