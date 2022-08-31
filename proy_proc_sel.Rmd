@@ -590,6 +590,7 @@ Apuntamos a separar por filas y columnas ciertas secciones estandarizadas: títu
 
 <br>
 
+::: controlly
 ```{r 0, echo=T, paged.print=TRUE,eval=T}
 #https://ph-ivshiny.iowa.uiowa.edu/rpterson/MSDshiny/
 #Multistate Simulation Designer
@@ -603,14 +604,14 @@ Apuntamos a separar por filas y columnas ciertas secciones estandarizadas: títu
 HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020[220:250,]%>% 
   knitr::kable(size=12, format="markdown")
 ```
-
+:::
+	
 <br>
 
 Por tanto, trabajaremos en la homologación y estructuración de los datos.
 
 <br>
 
-::: controlly
 ```{r 1, echo=T, paged.print=TRUE,eval=T}
 part_1<-
   bind_rows(HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020, HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020_2) %>% 
@@ -662,6 +663,7 @@ Posteriormente, notamos algunos errores de escritura en algunos nombres, recodif
 
 <br>
 
+::: controlly
 ```{r 2, echo=T, paged.print=TRUE,eval=T}
 caso_extrano<-
 as.numeric(unlist(data.table::data.table(part_1, keep.rownames = T)%>% 
