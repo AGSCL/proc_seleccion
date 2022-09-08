@@ -571,7 +571,7 @@ options(knitr.kable.NA = '')
 
 <br>
 
-Las mujeres tienen trayectorias laborales distintas, siendo las mujeres quien acceden a ocupaciones con menores posiciones [@Vives2018]. Usualmente, evitan pedir reconocimiento del trabajo que hacen y preguntan menos por promociones e incrementos de renta que sus pares hombres [@Modrego2017]. Por lo mismo, decidimos generar una base de datos con registros públicos de procesos de selección de una universidad pública de la región metropolitana, para analizar cuál era el riesgo (oportunidad) de volver a adjudicarse un proceso de selección pero transitando al aumento de renta (disminuir grado) o transitar al estamento profesional (profesionalización). Para ello se utilizaron modelos que asumen riesgos proporcionales entre ambos grupos [@Stel2011].
+Las mujeres tienen trayectorias laborales distintas, siendo las mujeres quien acceden a ocupaciones con menores posiciones [@Vives2018]. Usualmente, evitan pedir reconocimiento del trabajo que hacen y preguntan menos por promociones e incrementos de renta que sus pares hombres [@Modrego2017]. Por lo mismo, decidimos generar una base de datos con registros públicos de procesos de selección de una universidad pública de la región metropolitana, para analizar cuáles eran los hazards (oportunidad) de volver a adjudicarse un proceso de selección pero transitando al aumento de renta (disminuir grado) o transitar al estamento profesional (profesionalización). Para ello se utilizaron modelos que asumen riesgos proporcionales entre ambos grupos [@Stel2011].
 
 
 <br>
@@ -1648,7 +1648,7 @@ La razón de tasas de densidad de incidencia de aumentar grado o profesionalizar
 
 <br>
 
-```{r 20-survplot-sex-rec, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Riesgo Acumulado de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
+```{r 20-survplot-sex-rec, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Hazards Acumulados de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
 fit_sex_rec<- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17,
                                type      = "kaplan-meier",
                                 error     = "greenwood",
@@ -1695,7 +1695,7 @@ prop_haz<-cox.zph(coxph(Surv(diff_bet_proc, event_n>0)~factor(sex),
 
 <br>
 
-Atendiendo a que los riesgos entre hombres y mujeres se distribuyen de manera proporcional (Residuos Schoefeld: $X^2$ (`r data.frame(prop_haz$table)[1,2]`)= `r round(data.frame(prop_haz$table)[1,1],2)`  , p=`r round(data.frame(prop_haz$table)[1,3],4)`), se decidió hacer un análisis de supervivencia de cox.
+Atendiendo a que los hazards entre hombres y mujeres se distribuyen de manera proporcional (Residuos Schoefeld: $X^2$ (`r data.frame(prop_haz$table)[1,2]`)= `r round(data.frame(prop_haz$table)[1,1],2)`  , p=`r round(data.frame(prop_haz$table)[1,3],4)`), se decidió hacer un análisis de supervivencia de cox.
 
 <br>
 
@@ -1708,7 +1708,7 @@ coxph(Surv(diff_bet_proc, event_n>0)~factor(sex),
 
 <br>
 
-De los resultados del análisis de supervivencia de cox se desprende que las mujeres tendrían `r round(res_cox$estimate,2)` mayores riesgos de experimentar un aumento de grado o profesionalización que hombres (95% IC `r round(res_cox$conf.low,2)`, `r round(res_cox$conf.high,2)`), aunque no es significativo.
+De los resultados del análisis de supervivencia de cox se desprende que las mujeres tendrían `r round(res_cox$estimate,2)` mayores hazards de experimentar un aumento de grado o profesionalización que hombres (95% IC `r round(res_cox$conf.low,2)`, `r round(res_cox$conf.high,2)`), aunque no es significativo.
 
 <br>
 
@@ -1765,7 +1765,7 @@ La asociación también se conservaría
 
 #### Paso 3.2. Restringir a 1 evento por usuario.
 
-En este caso, pasamos de `r nrow(part_17)` a `r nrow(dplyr::group_by(part_17,id_seleccionado)%>% dplyr::mutate(rn=row_number())%>% dplyr::filter(rn<2))`. Por tanto, aquí no consideramos los riesgos de un 3er o posterior proceso de selección. Lo anterior, para chequear si la exposición previa podría afectar los resultados de la siguiente.  
+En este caso, pasamos de `r nrow(part_17)` a `r nrow(dplyr::group_by(part_17,id_seleccionado)%>% dplyr::mutate(rn=row_number())%>% dplyr::filter(rn<2))`. Por tanto, aquí no consideramos los hazards de un 3er o posterior proceso de selección. Lo anterior, para chequear si la exposición previa podría afectar los resultados de la siguiente.  
 
 <br>
 
@@ -1791,7 +1791,7 @@ La razón de tasas de densidad de incidencia de aumentar grado o profesionalizar
 
 <br>
 
-```{r 20-survplot-sex-rec-b, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Riesgo Acumulado de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
+```{r 20-survplot-sex-rec-b, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Hazards Acumulados de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
 fit_sex_rec2<- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17_first_ev,
                                type      = "kaplan-meier",
                                 error     = "greenwood",
@@ -1838,7 +1838,7 @@ prop_haz2<-cox.zph(coxph(Surv(diff_bet_proc, event_n>0)~factor(sex),
 
 <br>
 
-Atendiendo a que los riesgos entre hombres y mujeres se distribuyen de manera proporcional (Residuos Schoefeld: $X^2$ (`r data.frame(prop_haz2$table)[1,2]`)= `r round(data.frame(prop_haz2$table)[1,1],2)`  , p=`r round(data.frame(prop_haz2$table)[1,3],4)`), se decidió hacer un análisis de supervivencia de cox.
+Atendiendo a que los hazards entre hombres y mujeres se distribuyen de manera proporcional (Residuos Schoefeld: $X^2$ (`r data.frame(prop_haz2$table)[1,2]`)= `r round(data.frame(prop_haz2$table)[1,1],2)`  , p=`r round(data.frame(prop_haz2$table)[1,3],4)`), se decidió hacer un análisis de supervivencia de cox.
 
 <br>
 
@@ -1851,7 +1851,7 @@ coxph(Surv(diff_bet_proc, event_n>0)~factor(sex),
 
 <br>
 
-De los resultados del análisis de supervivencia de cox se desprende que las mujeres tendrían `r round(res_coxb$estimate,2)` mayores riesgos de experimentar un aumento de grado o profesionalización que hombres (95% IC `r round(res_coxb$conf.low,2)`, `r round(res_coxb$conf.high,2)`).
+De los resultados del análisis de supervivencia de cox se desprende que las mujeres tendrían `r round(res_coxb$estimate,2)` mayores hazards de experimentar un aumento de grado o profesionalización que hombres (95% IC `r round(res_coxb$conf.low,2)`, `r round(res_coxb$conf.high,2)`).
 
 <br>
 
@@ -1922,7 +1922,7 @@ coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)*rn + cluster(id_seleccionado)+ 
     ungroup(),method = "breslow"), exponentiate=T, conf.int=T) 
 ```
 
-De los resultados del análisis de supervivencia de cox con diseño anidado por sujeto y estratificado por proceso de selección adjudicado, se desprende que las mujeres tendrían `r round(res_coxc$estimate[1],2)` mayores riesgos de experimentar un aumento de grado o profesionalización que hombres en el segundo proceso  (95% IC `r round(res_coxc$conf.low[1],2)`, `r round(res_coxc$conf.high[1],2)`), pero el 3er proceso no modificaría ninguna de estas diferencias  (95% IC `r round(res_coxc$conf.low[4],2)`, `r round(res_coxc$conf.high[4],2)`). Posiblemente, porque muy pocos casos se han adjudicado un 3er proceso (n= `r dplyr::group_by(part_17,id_seleccionado) %>% dplyr::mutate(rn=factor(row_number())) %>% ungroup() %>% dplyr::filter(rn==3) %>% nrow()`).
+De los resultados del análisis de supervivencia de cox con diseño anidado por sujeto y estratificado por proceso de selección adjudicado, se desprende que las mujeres tendrían `r round(res_coxc$estimate[1],2)` mayores hazards de experimentar un aumento de grado o profesionalización que hombres en el segundo proceso  (95% IC `r round(res_coxc$conf.low[1],2)`, `r round(res_coxc$conf.high[1],2)`), pero el 3er proceso no modificaría ninguna de estas diferencias  (95% IC `r round(res_coxc$conf.low[4],2)`, `r round(res_coxc$conf.high[4],2)`). Posiblemente, porque muy pocos casos se han adjudicado un 3er proceso (n= `r dplyr::group_by(part_17,id_seleccionado) %>% dplyr::mutate(rn=factor(row_number())) %>% ungroup() %>% dplyr::filter(rn==3) %>% nrow()`).
 
 <br>
 
