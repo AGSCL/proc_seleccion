@@ -546,9 +546,12 @@ modsel.crr <- function (object, ..., d = log(object$n))
   structure(as.data.frame(out), heading = c(title, topnote), 
             class = c("anova", "data.frame"))
 }
+```
+</div>
 
 
-
+<div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:350px; overflow-x: scroll; width:100%">
+```{r setup2,include=T}
 url <- "https://ddp.usach.cl/sites/depto-personas/files/HISTORIAL%20DE%20PROCESOS%20DE%20SELECCION%202013-2020.xlsx"
 destfile <- "HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020.xlsx"
 curl::curl_download(url, destfile)
@@ -570,13 +573,14 @@ options(knitr.kable.NA = '')
 </div>
 
 <br>
+	
 
 Las mujeres tienen trayectorias laborales distintas, siendo las mujeres quien acceden a ocupaciones con menores posiciones [@Vives2018]. Usualmente, evitan pedir reconocimiento del trabajo que hacen y preguntan menos por promociones e incrementos de renta que sus pares hombres [@Modrego2017]. Por lo mismo, decidimos generar una base de datos con registros públicos de procesos de selección de una universidad pública de la región metropolitana, para analizar cuáles eran los hazards (oportunidad) de volver a adjudicarse un proceso de selección pero transitando al aumento de renta (disminuir grado) o transitar al estamento profesional (profesionalización). Para ello se utilizaron modelos que asumen riesgos proporcionales entre ambos grupos [@Stel2011].
 
 
 <br>
 
-Las bases de datos se obtuvieron desde el siguiente [enlace]("https://ddp.usach.cl/historial-de-procesos") y el siguiente [enlace]("https://ddp.usach.cl/sites/depto-personas/files/HISTORIAL%20DE%20PROCESOS%20DE%20SELECCION%202013-2020.xlsx").
+Las bases de datos se obtuvieron desde https://ddp.usach.cl/historial-de-procesos y https://ddp.usach.cl/sites/depto-personas/files/HISTORIAL%20DE%20PROCESOS%20DE%20SELECCION%202013-2020.xlsx.
 
 <br>
 
