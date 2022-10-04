@@ -599,7 +599,7 @@ A continuación, se muestran los datos del historial.
 <br>
 
 ::: controlly
-```{r 0, echo=T, paged.print=TRUE,eval=T}
+```{r 0a, echo=T, paged.print=TRUE,eval=T}
 #https://ph-ivshiny.iowa.uiowa.edu/rpterson/MSDshiny/
 #Multistate Simulation Designer
 #Multistate Structure
@@ -619,7 +619,7 @@ A continuación, se muestran los datos de la página.
 <br>
 
 ::: controlly
-```{r 0, echo=T, paged.print=TRUE,eval=T}
+```{r 0b, echo=T, paged.print=TRUE,eval=T}
 #https://ph-ivshiny.iowa.uiowa.edu/rpterson/MSDshiny/
 #Multistate Simulation Designer
 #Multistate Structure
