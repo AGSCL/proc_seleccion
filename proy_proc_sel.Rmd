@@ -594,6 +594,10 @@ Apuntamos a separar por filas y columnas ciertas secciones estandarizadas: títu
 
 <br>
 
+A continuación, se muestran los datos del historial.
+	
+<br>
+
 ::: controlly
 ```{r 0, echo=T, paged.print=TRUE,eval=T}
 #https://ph-ivshiny.iowa.uiowa.edu/rpterson/MSDshiny/
@@ -606,6 +610,26 @@ Apuntamos a separar por filas y columnas ciertas secciones estandarizadas: títu
 #References
 
 HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020[220:250,]%>% 
+  knitr::kable(size=12, format="markdown")
+```
+:::
+
+A continuación, se muestran los datos de la página.
+	
+<br>
+
+::: controlly
+```{r 0, echo=T, paged.print=TRUE,eval=T}
+#https://ph-ivshiny.iowa.uiowa.edu/rpterson/MSDshiny/
+#Multistate Simulation Designer
+#Multistate Structure
+#Baseline Hazards
+#Treatment effects
+#Single Simulation
+#Power Simulation
+#References
+
+HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020_2[1:100,]%>% 
   knitr::kable(size=12, format="markdown")
 ```
 :::
