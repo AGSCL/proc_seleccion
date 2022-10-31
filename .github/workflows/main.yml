@@ -36,6 +36,8 @@ jobs:
           Sys.setlocale("LC_CTYPE", "Spanish_Chile.1252")
           Sys.setlocale("LC_MONETARY", "Spanish_Chile.1252")
           Sys.setlocale("LC_TIME", "Spanish_Chile.1252")
+          options(repos=structure(c(CRAN="https://cran.dcc.uchile.cl/")))
+          if(!require(devtools)){install.packages("devtools", type = "win.binary", dependencies=T)}
           install.packages("pacman")
           pacman::p_install(c(lintr, rsconnect, devtools,
           tidyverse, distill, plotly, knitr, survminer,
