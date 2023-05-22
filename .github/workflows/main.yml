@@ -41,7 +41,8 @@ jobs:
           install.packages("pacman")
           pacman::p_install(c(lintr, rsconnect, devtools,
           tidyverse, distill, plotly, knitr, survminer,
-          withr, rmarkdown))
+          withr, rmarkdown, renv))
+          renv::restore() # Restore packages from renv.lock
           rmarkdown::render("proy_proc_sel.Rmd")
         shell: Rscript {0}
       - name: Commit files
