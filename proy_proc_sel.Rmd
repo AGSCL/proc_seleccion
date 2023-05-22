@@ -138,6 +138,7 @@ body{ /* Normal  */
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 5px; text-align: justify;}
 div.red { background-color:#e6bab1; border-radius: 5px; padding: 5px; text-align: justify;}
 
+
 .pandoc-table { /* Should add !important; but it seems no necessary  */
   margin-left:auto; /* To center */
   margin-right:auto;
@@ -171,6 +172,13 @@ padding: 0px;
 .controlly{
     overflow-y:scroll;
     height:350px;
+    overflow-x: scroll; 
+}
+
+
+.controlly2{
+    overflow-y:scroll;
+    height:550px;
     overflow-x: scroll; 
 }
 
@@ -1676,7 +1684,7 @@ La razón de tasas de densidad de incidencia de aumentar grado o profesionalizar
 <br>
 
 ```{r 20-survplot-sex-rec, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Hazards Acumulados de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
-fit_sex_rec<- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17,
+fit_sex_rec <- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17,
                                type      = "kaplan-meier",
                                 error     = "greenwood",
                                 conf.type = "log-log") 
@@ -1688,33 +1696,16 @@ fit_sex_rec<- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_
 #https://cran.r-project.org/web/packages/survminer/readme/README.html
 #https://docs.ufpr.br/~jlpadilha/CE077/Aulas/2.TecnicasNaoParametricas.pdf 
 #http://www.columbia.edu/~sjm2186/EPIC_R/packages.pdf
-ggsurvplot_fit_sex_rec<-
-  ggsurvplot(fit_sex_rec, 
-           fun = "cumhaz",
-           conf.int = TRUE,
-           legend.labs = c("Hombre", "Mujer"), 
-           risk.table = "abs_pct",
-           #ncensor.plot = TRUE,
-           ggtheme = theme_classic2(base_size=10),
-           risk.table.y.text.col = F,
-           risk.table.col="black",
-           font.tickslab = c(10),
-           risk.table.height = .2,
-           risk.table.fontsize = 2.5,
-           #break.time.by = 365.25,
-           pval = T,
-           ylim=c(0,1.5),
-           legend = c(0.15,0.88), 
-           legend.title="Profesionalización/\nAumentar grado",
-           xlab= "Tiempo (días)", 
-           #cumevents=T,
-           surv.connect = T,
-           censor= F,
-          # xscale=  "d_y",
-           palette = c("skyblue4","gray50"))+
-  labs(y="Riesgo acumulado")
-ggsurvplot_fit_sex_rec
 
+fortify(fit_sex_rec, fun = "cumhaz") %>% 
+ggplot(aes(x = time, y = cumhaz, color = strata, fill = strata, group=strata)) +
+  geom_step() +
+  scale_color_manual(values = c("skyblue4","gray50"), labels = c("Hombre", "Mujer")) +
+  scale_fill_manual(values = c("skyblue4","gray50"), labels = c("Hombre", "Mujer")) +	
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = .2) +
+  theme_classic() +
+  labs(x = "Tiempo (días)", y = "Riesgo acumulado", color = "Profesionalización/\nAumentar grado") 
+	
 invisible("Prueba de riesgos proporcionales:")
 prop_haz<-cox.zph(coxph(Surv(diff_bet_proc, event_n>0)~factor(sex),
               data=part_17))
@@ -1823,41 +1814,15 @@ fit_sex_rec2<- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part
                                type      = "kaplan-meier",
                                 error     = "greenwood",
                                 conf.type = "log-log") 
-
-#http://rstudio-pubs-static.s3.amazonaws.com/522481_5e55bec9c94044678e680a6d07e96a2e.html
-#https://rstudio-pubs-static.s3.amazonaws.com/258589_cd197f86fb5548ac89d7bcffd4bc6afe.html
-#http://pcool.dyndns.org:8080/statsbook/?page_id=513
-#http://rstudio-pubs-static.s3.amazonaws.com/316989_83cbe556125645b698c9ff6cf88c4c1a.html
-#https://cran.r-project.org/web/packages/survminer/readme/README.html
-#https://docs.ufpr.br/~jlpadilha/CE077/Aulas/2.TecnicasNaoParametricas.pdf 
-#http://www.columbia.edu/~sjm2186/EPIC_R/packages.pdf
-ggsurvplot_fit_sex_rec2<-
-  ggsurvplot(fit_sex_rec2, 
-           fun = "cumhaz",
-           conf.int = TRUE,
-           legend.labs = c("Hombre", "Mujer"), 
-           risk.table = "abs_pct",
-           #ncensor.plot = TRUE,
-           ggtheme = theme_classic2(base_size=10),
-           risk.table.y.text.col = F,
-           risk.table.col="black",
-           font.tickslab = c(10),
-           risk.table.height = .2,
-           risk.table.fontsize = 2.5,
-           #break.time.by = 365.25,
-           pval = T,
-           ylim=c(0,1.5),
-           legend = c(0.15,0.88), 
-           legend.title="Profesionalización/\nAumentar grado",
-           xlab= "Tiempo (días)", 
-           #cumevents=T,
-           surv.connect = T,
-           censor= F,
-          # xscale=  "d_y",
-           palette = c("skyblue4","gray50"))+
-  labs(y="Riesgo acumulado")
-ggsurvplot_fit_sex_rec2
-
+fortify(fit_sex_rec2, fun = "cumhaz") %>% 
+ggplot(aes(x = time, y = cumhaz, color = strata, fill = strata, group=strata)) +
+  geom_step() +
+  scale_color_manual(values = c("skyblue4","gray50"), labels = c("Hombre", "Mujer")) +
+  scale_fill_manual(values = c("skyblue4","gray50"), labels = c("Hombre", "Mujer")) +	
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = .2) +
+  theme_classic() +
+  labs(x = "Tiempo (días)", y = "Riesgo acumulado", color = "Profesionalización/\nAumentar grado") 
+	
 invisible("Prueba de riesgos proporcionales:")
 prop_haz2<-cox.zph(coxph(Surv(diff_bet_proc, event_n>0)~factor(sex),
               data=part_17_first_ev))
