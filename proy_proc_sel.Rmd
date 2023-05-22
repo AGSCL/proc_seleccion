@@ -1684,10 +1684,7 @@ La razón de tasas de densidad de incidencia de aumentar grado o profesionalizar
 <br>
 
 ```{r 20-survplot-sex-rec, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Hazards Acumulados de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
-fit_sex_rec <- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17,
-                               type      = "kaplan-meier",
-                                error     = "greenwood",
-                                conf.type = "log-log") 
+fit_sex_rec <- survfit(Surv(diff_bet_proc, event_n>0) ~ factor(sex), data=part_17) 
 
 #http://rstudio-pubs-static.s3.amazonaws.com/522481_5e55bec9c94044678e680a6d07e96a2e.html
 #https://rstudio-pubs-static.s3.amazonaws.com/258589_cd197f86fb5548ac89d7bcffd4bc6afe.html
@@ -1811,10 +1808,8 @@ La razón de tasas de densidad de incidencia de aumentar grado o profesionalizar
 <br>
 
 ```{r 20-survplot-sex-rec-b, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Hazards Acumulados de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
-fit_sex_rec2<- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17_first_ev,
-                               type      = "kaplan-meier",
-                                error     = "greenwood",
-                                conf.type = "log-log") 
+fit_sex_rec2 <- survfit(Surv(diff_bet_proc, event_n>0) ~ factor(sex), data=part_17_first_ev) 
+
 surv_data2 <- broom::tidy(fit_sex_rec2)	
 fortify(surv_data2, fun = "cumhaz") %>% 
 ggplot(aes(x = time, y = cumhaz, color = strata, fill = strata, group=strata)) +
