@@ -1697,7 +1697,8 @@ fit_sex_rec <- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part
 #https://docs.ufpr.br/~jlpadilha/CE077/Aulas/2.TecnicasNaoParametricas.pdf 
 #http://www.columbia.edu/~sjm2186/EPIC_R/packages.pdf
 
-fortify(fit_sex_rec, fun = "cumhaz") %>% 
+surv_data <- broom::tidy(fit_sex_rec)
+fortify(surv_data, fun = "cumhaz") %>% 
 ggplot(aes(x = time, y = cumhaz, color = strata, fill = strata, group=strata)) +
   geom_step() +
   scale_color_manual(values = c("skyblue4","gray50"), labels = c("Hombre", "Mujer")) +
@@ -1814,7 +1815,8 @@ fit_sex_rec2<- survfit(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part
                                type      = "kaplan-meier",
                                 error     = "greenwood",
                                 conf.type = "log-log") 
-fortify(fit_sex_rec2, fun = "cumhaz") %>% 
+surv_data2 <- broom::tidy(fit_sex_rec2)	
+fortify(surv_data2, fun = "cumhaz") %>% 
 ggplot(aes(x = time, y = cumhaz, color = strata, fill = strata, group=strata)) +
   geom_step() +
   scale_color_manual(values = c("skyblue4","gray50"), labels = c("Hombre", "Mujer")) +
