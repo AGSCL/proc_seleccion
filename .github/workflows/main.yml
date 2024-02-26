@@ -1,9 +1,11 @@
 name: Render and Deploy RMarkdown Website
+
 on:
   push:
   schedule:
-    - cron: '0 0 * * MON' #http://www.cronmaker.com/?0 https://crontab.guru/every-monday #https://github.com/actions/cache  https://github.com/actions/cache/blob/main/examples.md#r---renv
-jobs: 
+    - cron: '0 0 * * MON' # http://www.cronmaker.com/?0 https://crontab.guru/every-monday #https://github.com/actions/cache  https://github.com/actions/cache/blob/main/examples.md#r---renv
+
+jobs:
   build:
     runs-on: windows-latest
     strategy:
@@ -17,45 +19,48 @@ jobs:
       RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - run: echo "$GITHUB_CONTEXT"
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Set up R ${{ matrix.r-version }}		
+          # Necessary to ensure that the .Renviron and renv.lock file are available
+      - name: Set up R ${{ matrix.r-version }}
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.r-version }}
       - uses: r-lib/actions/setup-pandoc@v1
+
+      - name: Cache Renv packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ env.R_LIBS_USER }}
+            renv/library/R-*
+            renv/cache/
+          key: ${{ runner.os }}-r-${{ hashFiles('**/renv.lock') }}
+          restore-keys: ${{ runner.os }}-r-
+
       - name: Set locale Spanish
         shell: pwsh
         run: |
           Set-WinSystemLocale es-ES
-      - name: Install dependencies & Render
+
+      - name: Restore R environment with renv
         run: |
-          Sys.setlocale("LC_COLLATE", "Spanish_Chile.1252")
-          Sys.setlocale("LC_CTYPE", "Spanish_Chile.1252")
-          Sys.setlocale("LC_MONETARY", "Spanish_Chile.1252")
-          Sys.setlocale("LC_TIME", "Spanish_Chile.1252")
-          options(repos=structure(c(CRAN="https://cran.dcc.uchile.cl/")))
-          if(!require(devtools)){install.packages("devtools", type = "win.binary", dependencies=T)}
-          install.packages("pacman")
-          pacman::p_install(c(lintr, rsconnect, devtools,
-          tidyverse, distill, plotly, knitr, survminer,
-          withr, rmarkdown, renv, 
-          sjPlot, readxl, tidyverse, readr, ggplot2,
-          plotly, curl, tidylog, fuzzyjoin, compareGroups, 
-          cmprsk, biostat3, rateratio.test, survminer, survival, 
-          rvest,  janitor, DT, tibble, guaguas, plotly))
-          # renv::restore() # Restore packages from renv.lock
-          rmarkdown::render("proy_proc_sel.Rmd")
-          renv::snapshot()
+          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+          renv::restore()
         shell: Rscript {0}
+
+      - name: Render RMarkdown
+        run: rmarkdown::render("proy_proc_sel.Rmd")
+        shell: Rscript {0}
+
       - name: Commit files
         run: |
           git config --local user.email "${{ github.actor }}@users.noreply.github.com"
           git config --local user.name "${{ github.actor }}"
           git add .
           git commit --allow-empty -am "AUTO-GH ACTION: ${{ github.workflow }} $(date)"
+
       - name: Push changes to gh-pages
         uses: ad-m/github-push-action@master
         with:
