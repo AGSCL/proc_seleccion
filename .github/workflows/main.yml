@@ -40,17 +40,16 @@ jobs:
 
       - name: Initialize renv and Restore Packages
         run: |
-          if (!file.exists("renv.lock")) {
-            if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-            renv::init(bare = TRUE)
-          }
-          renv::restore()
+          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+          renv::init(bare = TRUE)  # Initialize if renv.lock is missing
+          renv::restore()  
         shell: Rscript {0}
 
       - name: Render RMarkdown
+        if: ${{ success() }}  # Only render if previous step succeeded
         run: rmarkdown::render("proy_proc_sel.Rmd")
         shell: Rscript {0}
-
+        
       - name: Commit and Push Changes
         run: |
           git config --local user.email "${{ github.actor }}@users.noreply.github.com"
