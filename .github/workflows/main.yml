@@ -38,13 +38,6 @@ jobs:
           key: ${{ runner.os }}-r-${{ hashFiles('**/renv.lock') }}
           restore-keys: ${{ runner.os }}-r-
 
-      - name: Initialize renv and Restore Packages
-        run: |
-          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-          renv::init(bare = TRUE)  # Initialize if renv.lock is missing
-          renv::restore()  
-        shell: Rscript {0}
-
       - name: Render RMarkdown
         if: ${{ success() }}  # Only render if previous step succeeded
         run: rmarkdown::render("proy_proc_sel.Rmd")
