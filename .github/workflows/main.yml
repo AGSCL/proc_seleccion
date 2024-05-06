@@ -29,11 +29,23 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v1
 
-      - name: Install jags (Windows)
+      - name: Install jags (Windows) #https://stackoverflow.com/questions/77948727/curl-under-windows-server-2022-uses-unix-certificate-store-when-called-in-github #https://github.com/iamazeem/test/blob/main/.github/workflows/ci-win-curl-jags.yml
         shell: cmd
         run: |
           curl.exe --ca-native -o wjags.exe --url https://deac-fra.dl.sourceforge.net/project/mcmc-jags/JAGS/4.x/Windows/JAGS-4.3.0.exe
           wjags.exe /S
+          del wjags.exe 
+
+      - name: Download JAGS installer
+        run: |
+          curl -o wjags.exe -L "https://deac-fra.dl.sourceforge.net/project/mcmc-jags/JAGS/4.x/Windows/JAGS-4.3.0.exe"
+      
+      - name: Install JAGS
+        run: |
+          wjags.exe /S
+      
+      - name: Clean up downloaded installer
+        run: |
           del wjags.exe
 
       - name: Cache Renv packages
