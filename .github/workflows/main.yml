@@ -1,5 +1,7 @@
 on:
   push:
+    branches:
+      - main
   schedule:
     - cron: '0 0 * * MON' # Every Monday at 00:00
 
@@ -27,8 +29,11 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v1
 
-      - name: Install system dependencies
-	run: brew install jags
+      - name: Install JAGS
+        run: |
+          curl -L "https://github.com/mcmc-jags/jags/releases/download/v4.3.0/JAGS-4.3.0.exe" -o JAGS-4.3.0.exe
+          Start-Process -FilePath "JAGS-4.3.0.exe" -ArgumentList "/S" -Wait
+
       - name: Cache Renv packages
         uses: actions/cache@v2
         with:
