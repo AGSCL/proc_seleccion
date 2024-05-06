@@ -42,6 +42,9 @@ jobs:
       - name: Clean up downloaded installer
         run: |
           del wjags.exe
+          
+      - name: Recover renv
+        uses: r-lib/actions/setup-renv@v2          
 
       - name: Cache Renv packages
         uses: actions/cache@v2
