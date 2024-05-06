@@ -1,0 +1,55 @@
+on:
+  push:
+  schedule:
+    - cron: '0 0 * * MON' # Every Monday at 00:00
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        r-version: [4.1.2]
+    permissions:
+      contents: write
+      issues: write
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      RSPM: ${{ matrix.config.rspm }}
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r-version }}
+
+      - uses: r-lib/actions/setup-pandoc@v1
+
+      - name: Install system dependencies
+	run: brew install jags
+      - name: Cache Renv packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ env.R_LIBS_USER }}
+            renv/library/R-*
+            renv/cache/
+          key: ${{ runner.os }}-r-${{ hashFiles('**/renv.lock') }}
+          restore-keys: ${{ runner.os }}-r-
+
+      - name: Render RMarkdown
+        if: ${{ success() }}  # Only render if previous step succeeded
+        run: |
+          Rscript -e "rmarkdown::render('proy_proc_sel.Rmd')"
+
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --local user.name "${{ github.actor }}"
+          git add .
+          git commit -m "Update renv.lock and rendered content [skip ci]" --allow-empty
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

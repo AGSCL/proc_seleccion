@@ -1,0 +1,2180 @@
+---
+title: "Un ejemplo de análisis de supervivencia con datos públicos de libre acceso"
+date: "`r withr::with_locale(new = c('LC_TIME' = 'C'), code =format(Sys.time(),'%B %d, %Y'))`"
+output:
+  distill::distill_article:
+    code_folding: true
+    fig_height: 6
+    fig_width: 8
+    toc: yes
+    toc_depth: 5
+    toc_float: yes
+    output_dir: "docs"
+  toc_float:
+    collapsed: false
+    smooth_scroll: true
+bibliography: bib_markdown.bib
+nocite: '@*'
+---
+
+```{css zoom-lib-src, echo = FALSE}
+script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+```
+
+```{js zoom-jquery, echo = FALSE}
+ $(document).ready(function() {
+    $('body').prepend('<div class=\"zoomDiv\"><img src=\"\" class=\"zoomImg\"></div>');
+    // onClick function for all plots (img's)
+    $('img:not(.zoomImg)').click(function() {
+      $('.zoomImg').attr('src', $(this).attr('src')).css({width: '100%'});
+      $('.zoomDiv').css({opacity: '1', width: 'auto', border: '1px solid white', borderRadius: '5px', position: 'fixed', top: '50%', left: '50%', marginRight: '-50%', transform: 'translate(-50%, -50%)', boxShadow: '0px 0px 50px #888888', zIndex: '50', overflow: 'auto', maxHeight: '100%'});
+    });
+    // onClick function for zoomImg
+    $('img.zoomImg').click(function() {
+      $('.zoomDiv').css({opacity: '0', width: '0%'}); 
+    });
+  });
+  
+```
+
+```{css hideOutput-lib-src, echo = FALSE}
+<script src="hideOutput.js"></script> 
+```
+
+```{js hideOutput, echo = FALSE}
+$(document).ready(function() {    
+	$chunks = $('.fold');    
+	$chunks.each(function () {      // add button to source code chunks     
+	if ( $(this).hasClass('s') ) {       
+		$('pre.r', this).prepend("<div class=\"showopt\">Show Source</div><br style=\"line-height:22px;\"/>");
+       		$('pre.r', this).children('code').attr('class', 'folded');     
+       		}      // add button to output chunks     
+		if ( $(this).hasClass('o') ) {       
+			$('pre:not(.r)', this).has('code').prepend("<div class=\"showopt\">Show Output</div><br style=\"line-height:22px;\"/>");       
+			$('pre:not(.r)', this).children('code:not(r)').addClass('folded');        // add button to plots       
+			$(this).find('img').wrap('<pre class=\"plot\"></pre>');       
+			$('pre.plot', this).prepend("<div class=\"showopt\">Show Plot</div><br style=\"line-height:22px;\"/>");       
+			$('pre.plot', this).children('img').addClass('folded');      
+			}   
+});    // hide all chunks when document is loaded   
+	$('.folded').css('display', 'none')    // function to toggle the visibility   
+	$('.showopt').click(function() {     
+			var label = $(this).html();     
+			if (label.indexOf("Show") >= 0) {       
+				$(this).html(label.replace("Show", "Hide"));     
+			} else {
+			  $(this).html(label.replace("Hide", "Show"));     
+			}     
+	$(this).siblings('code, img').slideToggle('fast', 'swing');   
+	}); 
+}); 
+
+```
+
+```{=html}
+<style type="text/css">
+.showopt {   
+  background-color: #004c93;   color: #FFFFFF;    width: 100px;   height: 20px;   text-align: center;   vertical-align: middle !important;   float: right;   font-family: sans-serif;   border-radius: 8px; 
+  }
+
+.showopt:hover {     
+        background-color: #dfe4f2;
+        color: #004c93; 
+        }  
+pre.plot {   
+        background-color: white !important; 
+        } 
+.tablelines table, .tablelines td, .tablelines th {
+        border: 1px solid black;
+        }
+
+.centrado {
+    text-align: center;
+}
+
+.table.center {
+    margin-left:auto; 
+    margin-right:auto;
+  }
+
+/* https://vivekjaiskumar.medium.com/css-is-and-not-selector-17c942ec83f :is()*/
+
+/* Applies to outputs that are not code other than R*/
+
+pre {
+  overflow-x: auto !important;
+}
+pre code {
+  word-wrap: normal !important;
+  white-space: pre !important;
+}
+/*
+pre:not(.sourceCode) { 
+  white-space: nowrap !important;
+}
+*/
+.sourceCode { /* Important gives precedence  */
+  font-size: 10px !important;
+  line-height: 50% !important;
+}
+
+body{ /* Normal  */
+      text-align: justify;
+  }
+
+.superbigimage{
+    overflow-y:scroll;
+    height:350px;
+    white-space: nowrap;
+    overflow-x: auto; 
+    width:100%;
+}
+.superbigimage img{
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.message { color:#446C6E; font-family: monospace;font-size: 10px; line-height: 110%; font-weight: bold;}
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 5px; text-align: justify;}
+div.red { background-color:#e6bab1; border-radius: 5px; padding: 5px; text-align: justify;}
+
+
+.pandoc-table { /* Should add !important; but it seems no necessary  */
+  margin-left:auto; /* To center */
+  margin-right:auto;
+  border-collapse: collapse;
+  table-layout: auto;
+  font-size: 11px;
+  overflow-y: auto;
+  max-height:450px !important;
+  white-space: nowrap;
+  overflow-x: auto; 
+  width:450px;
+}
+
+.pandoc-table th {/* header */
+text-align: center !important;
+font-size: 10px;
+padding: 0px;
+}
+
+.pandoc-table td {
+text-align: left !important;
+font-size: 9px;
+padding: 0px;
+}
+
+.pandoc-table caption {
+    text-align: left !important;
+    font-size: 11px !important;
+}
+
+.controlly{
+    overflow-y:scroll;
+    height:350px;
+    overflow-x: scroll; 
+}
+
+
+.controlly2{
+    overflow-y:scroll;
+    height:550px;
+    overflow-x: scroll; 
+}
+
+</style>
+```
+```{=html}
+<!-- We gotta do each function to hide code and outputs per section, by every ID, we gotta create a different function -->
+<script>
+function myFunction1() {
+    var x = document.getElementById("myDIV");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
+    }
+}
+</script>
+
+<script>
+function myFunction2() {
+    var x = document.getElementById("myDIV2");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
+    }
+}
+</script>
+```
+
+```{r setup0,include=T}
+rm(list=ls());gc()
+```
+
+<div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:350px; overflow-x: scroll; width:100%">
+```{r setup,include=T}
+Sys.setlocale("LC_COLLATE", "Spanish_Chile.1252")
+Sys.setlocale("LC_COLLATE", "Spanish_Chile.1252")
+Sys.setlocale("LC_CTYPE", "Spanish_Chile.1252")
+Sys.setlocale("LC_MONETARY", "Spanish_Chile.1252")
+Sys.setlocale("LC_TIME", "Spanish_Chile.1252")
+knitr::opts_chunk$set(echo = TRUE)
+
+# Required packages 
+required_packages <- c("pacman", "ggplot2", "sjPlot", "readxl", "tidyr", "dplyr", "readr", "plotly", "anonymizer", "curl", "tidylog", "fuzzyjoin", "compareGroups", "cmprsk", "biostat3", "rateratio.test", "survminer", "survival", "rvest", "guaguas", "janitor", "DT", "tibble", "rstan")
+
+# Install missing packages using pacman::p_install
+missing_packages <- required_packages[!required_packages %in% installed.packages()]
+if (length(missing_packages) > 0) {
+    pacman::p_install(missing_packages, character.only = TRUE, force = TRUE) 
+}
+# Load packages
+for (pkg in required_packages) {
+    library(pkg, character.only = TRUE) 
+}
+
+if(!require(anonymizer)){devtools::install_github("paulhendricks/anonymizer")}
+if(!require(igraph)){install.packages("igraph", type = "binary")}
+#if(!require(rstanarm)){install.packages("rstanarm", type = "binary")}
+# if(.Platform$OS.type == "windows"){
+#   if(!require(rjags)){
+#     install.packages("C:/Users/andre/Desktop/proc_seleccion-main/rjags_4-4.tar.gz", repos = NULL, type = "source");require(rjags)
+#     }
+# }
+# if(.Platform$OS.type == "windows"){
+#   if(!require(rjags)){
+#     install.packages("C:/Users/andre/Desktop/proc_seleccion-main/rjags_4-4.zip", repos = NULL, type = "source");require(rjags)
+#     }
+# }
+try(library("rjags"))
+copiar_nombres <- function(x,row.names=FALSE,col.names=TRUE,dec=",",...) {
+  if(class(ungroup(x))[1]=="tbl_df"){
+    if(options()$OutDec=="."){
+      options(OutDec = dec)
+      write.table(format(data.frame(x)),"clipboard",sep="\t",row.names=FALSE,col.names=col.names,...)
+      options(OutDec = ".")
+      return(x)
+    } else {
+      options(OutDec = ",")
+      write.table(format(data.frame(x)),"clipboard",sep="\t",row.names=FALSE,col.names=col.names,...)
+      options(OutDec = ",")
+      return(x)    
+    }
+  } else {
+    if(options()$OutDec=="."){
+      options(OutDec = dec)
+      write.table(format(x),"clipboard",sep="\t",row.names=FALSE,col.names=col.names,...)
+      options(OutDec = ".")
+      return(x)
+    } else {
+      options(OutDec = ",")
+      write.table(format(x),"clipboard",sep="\t",row.names=FALSE,col.names=col.names,...)
+      options(OutDec = ",")
+      return(x)       
+    }
+  }
+}
+
+
+irrs<-function(x, y="event", z="person_days",db){
+  #x= variable que agrupa
+  #y= evento explicado
+  #z= person days
+  #db= base de datos
+  fmla <- as.formula(paste0(y,"~",x))
+  fmla2 <- as.formula(paste0(z,"~",x))
+assign(paste0("irr_",y,"_por_",x),
+       rateratio.test::rateratio.test(
+     x=as.numeric(xtabs(fmla, data=get(db)))[c(2,1)],
+     n=as.numeric(xtabs(fmla, data=get(db)))[c(2,1)]
+    )
+   )
+return(
+  rateratio.test::rateratio.test(
+     x=as.numeric(xtabs(fmla, data=get(db)))[c(2,1)],
+     n=as.numeric(xtabs(fmla2, data=get(db)))[c(2,1)]
+      )
+    )
+}
+
+
+##############################################################################
+# Adds-on functions to crr() function in 'cmprsk' package by Gray, RJ. 
+# Written by Luca Scrucca
+#
+# Reference: 
+# Scrucca L, Santucci A, Aversa F (2009) Regression Modeling of Competing 
+#   Risk Using R: An In Depth Guide for Clinicians. Submitted to Bone Marrow
+#   Transplantation
+##############################################################################
+
+modsel.crr <- function (object, ..., d = log(object$n)) 
+{
+  if(class(object) != "crr") 
+    stop("object is not of class 'crr'")
+  objects <- list(object, ...)
+  nmodels <- length(objects)
+  modnames <- paste("Model ", format(1:nmodels), ": ", 
+                      lapply(objects, function(x) x$call), 
+                      sep = "", collapse = "\n")
+  # add null model
+  mod0 <- object
+  mod0$loglik <- mod0$loglik.null
+  mod0$coef <- mod0$call$cov1 <- mod0$call$cov2 <- NULL
+  objects <- c(list(mod0), objects)
+  nmodels <- nmodels + 1
+  #
+  modnames <- c("Model 0: Null model", modnames)
+  ns <- sapply(objects, function(x) x$n) 
+  dfs <- sapply(objects, function(x) length(x$coef)) 
+  if(any(ns != ns[1]))
+    stop("models were not all fitted to the same dataset")
+  out <- matrix(rep(NA, 5 * nmodels), ncol = 5)
+  loglik <- sapply(objects, function(x) x$loglik)
+  crit <- sapply(objects, function(x) -2*x$loglik + d*length(x$coef))
+  out[,1] <- ns
+  out[,2] <- loglik
+  out[,3] <- dfs
+  out[,4] <- crit
+  out[,5] <- crit - min(crit)
+  if(d==log(object$n)) critname <- "BIC"
+  else if(d == 2) critname <- "AIC"
+  else critname <- "Criterion"
+  colnames(out) <- c("Num.obs", "logLik", "Df.fit", critname, paste(critname, "diff"))
+  rownames(out) <- 0:(nmodels-1)
+  title <- "Model selection table\n"
+  topnote <- modnames
+  structure(as.data.frame(out), heading = c(title, topnote), 
+            class = c("anova", "data.frame"))
+}
+
+#############################################################################
+#                                                                           #
+#                 CUMULATIVE INCIDENCE CURVES IN R                          #
+#                                                                           #
+# Written by Luca Scrucca                                                   #
+#                                                                           #
+# Reference:                                                                #
+# Scrucca L., Santucci A., Aversa F. (2007) Competing risks analysis using  #
+#   R: an easy guide for clinicians. Bone Marrow Transplantation, 40,       #
+#   381--387.                                                               #
+#############################################################################
+# ver. 1.2 Apr 2018
+#  - improved format for p-value
+# ver. 1.1 Feb 2008
+#  - allow group to be missing
+#  - if t is provided both computation and plots use t as time points
+#  - allow col, lwd to be used for curves with confidence bands
+#  - fix some bugs in the legend
+#  - added help on source code
+# ver. 1.0 May 2007
+#  - Version appearing in the BMT paper
+#############################################################################
+#
+# Usage:
+# 
+#   CumIncidence(ftime, fstatus, group, t, strata, rho = 0, cencode = 0,
+#             	 subset, na.action = na.omit, level, 
+#                xlab = "Time", ylab = "Probability", 
+#                col, lty, lwd, digits = 4)
+# 
+# Arguments:
+# 
+# ftime = failure time variable.
+# fstatus = variable with distinct codes for different causes of 
+#           failure and also a distinct code for censored observations.
+# group	= estimates will be calculated within groups given by distinct 
+#         values of this variable. Tests will compare these groups. If 
+#         missing then treated as all one group (no test statistics).
+# t = a vector of time points where the cumulative incidence function 
+#     should be evaluated.
+# strata = stratification variable. Has no effect on estimates. Tests 
+#          will be stratified on this variable. (all data in 1 stratum,
+#          if missing).
+# rho = power of the weight function used in the tests. By default is 
+#       set to 0.
+# cencode = value of fstatus variable which indicates the failure time
+#           is censored.
+# subset = a logical vector specifying a subset of cases to include in 
+#          the analysis.
+# na.action = a function specifying the action to take for any cases 
+#             missing any of ftime, fstatus, group, strata, or subset. 
+#             By default missing cases are omitted.
+# level = a value in the range [0,1] specifying the level for pointwise
+#         confidence bands.
+# xlab = text for the x-axis label.
+# ylab = text for the y-axis label.
+# col = color(s) used for plotting curves (see plot.default).
+# lty = line type(s) used for plotting curves (see plot.default).
+# lwd = line width(s) used for plotting curves (see plot.default).
+# digits = number of significant digits used for printing values. By 
+#          default set at 4.
+# 
+#############################################################################
+
+"CumIncidence" <- function(ftime, fstatus, group, t, strata, rho = 0, 
+	                         cencode = 0, subset, na.action = na.omit, level,
+	                         xlab = "Time", ylab = "Probability", 
+	                         col, lty, lwd, digits = 4)
+{
+  # check for the required package
+  if(!require("cmprsk"))
+    { stop("Package `cmprsk' is required and must be installed.\n 
+           See help(install.packages) or write the following command at prompt
+           and then follow the instructions:\n
+           > install.packages(\"cmprsk\")") } 
+  # collect data
+  mf  <- match.call(expand.dots = FALSE)
+  mf[[1]] <- as.name("list")
+  mf$t <- mf$digits <- mf$col <- mf$lty <- mf$lwd <- mf$level <- 
+  mf$xlab <- mf$ylab <- NULL
+  mf <- eval(mf, parent.frame())
+  g <- max(1, length(unique(mf$group)))
+  s <- length(unique(mf$fstatus))
+  if(missing(t)) 
+    { time <- pretty(c(0, max(mf$ftime)), 6) #length(seq(0,11,.05)) , proportions the same results in terms of p values and ci's
+      ttime <- time <- time[time < max(mf$ftime)] }
+  else { ttime <- time <- t }
+  # fit model and estimates at time points
+  fit   <- do.call("cuminc", mf)
+  tfit <- timepoints(fit, time)
+  # print result
+  cat("\n+", paste(rep("-", 67), collapse=""), "+", sep ="")
+  cat("\n| Cumulative incidence function estimates from competing risks data |")
+  cat("\n+", paste(rep("-", 67), collapse=""), "+\n", sep ="")
+  tests <- NULL
+  if(g > 1)
+  { 
+    tests <- data.frame(fit$Tests[,c(1,3,2)], check.names = FALSE)
+    colnames(tests) <- c("Statistic", "df", "p-value")
+    tests$`p-value` <- format.pval(tests$`p-value`)
+    cat("Test equality across groups:\n")
+    print(tests, digits = digits) 
+  }
+  cat("\nEstimates at time points:\n")
+  print(tfit$est, digits = digits)
+  cat("\nStandard errors:\n")
+  print(sqrt(tfit$var), digits = digits)
+  #
+  if(missing(level))
+    { # plot cumulative incidence functions
+      if(missing(t))
+        { time <- sort(unique(c(ftime, time)))
+          x <- timepoints(fit, time) }
+      else x <- tfit
+      col <- if(missing(col)) rep(1:(s-1), rep(g,(s-1))) else col
+      lty <- if(missing(lty)) rep(1:g, s-1) else lty
+      lwd <- if(missing(lwd)) rep(1, g*(s-1)) else lwd      
+     # matplot(time, base::t(x$est), type="s", ylim = c(0,1), 
+     #         xlab = xlab, ylab = ylab, xaxs="i", yaxs="i", 
+     #         col = col, lty = lty, lwd = lwd)
+     # legend("topleft", legend =  rownames(x$est), x.intersp = 2, 
+     #        bty = "n", xjust = 1, col = col, lty = lty, lwd = lwd)
+      out <- list(test = tests, est = tfit$est, se = sqrt(tfit$var))
+    }
+  else
+    { if(level < 0 | level > 1) 
+        error("level must be a value in the range [0,1]")
+      # compute pointwise confidence intervals
+      oldpar <- par(ask=TRUE)
+      on.exit(par(oldpar))
+      if(missing(t))
+        { time <- sort(unique(c(ftime, time)))
+          x <- timepoints(fit, time) }
+      else x <- tfit
+      z <- qnorm(1-(1-level)/2)
+      lower <- x$est ^ exp(-z*sqrt(x$var)/(x$est*log(x$est)))
+      upper <- x$est ^ exp(z*sqrt(x$var)/(x$est*log(x$est)))
+      col <- if(missing(col)) rep(1:(s-1), rep(g,(s-1))) 
+             else             rep(col, g*(s-1))
+      lwd <- if(missing(lwd)) rep(1, g*(s-1)) 
+             else             rep(lwd, g*(s-1))      
+      # plot pointwise confidence intervals
+     # for(j in 1:nrow(x$est))
+     #    { matplot(time, cbind(x$est[j,], lower[j,], upper[j,]), type="s", 
+     #              xlab = xlab, ylab = ylab, xaxs="i", yaxs="i", 
+     #              ylim = c(0,1), col = col[j], lwd = lwd[j], lty = c(1,3,3))
+     #      legend("topleft", legend =  rownames(x$est)[j], bty = "n", xjust = 1) }
+      # print pointwise confidence intervals
+      i <- match(ttime, time)
+      ci <- array(NA, c(2, length(i), nrow(lower)))
+      ci[1,,] <- base::t(lower[,i])
+      ci[2,,] <- base::t(upper[,i])
+      dimnames(ci) <- list(c("lower", "upper"), ttime, rownames(lower))
+      cat(paste("\n", level*100, "% pointwise confidence intervals:\n\n", sep=""))
+      print(ci, digits = digits)
+      out <- list(test = tests, est = x$est, se = sqrt(tfit$var), ci = ci)
+    }
+  # return results
+  invisible(out)
+}
+
+
+modsel.crr <- function (object, ..., d = log(object$n)) 
+{
+  if(class(object) != "crr") 
+    stop("object is not of class 'crr'")
+  objects <- list(object, ...)
+  nmodels <- length(objects)
+  modnames <- paste("Model ", format(1:nmodels), ": ", 
+                      lapply(objects, function(x) x$call), 
+                      sep = "", collapse = "\n")
+  # add null model
+  mod0 <- object
+  mod0$loglik <- mod0$loglik.null
+  mod0$coef <- mod0$call$cov1 <- mod0$call$cov2 <- NULL
+  objects <- c(list(mod0), objects)
+  nmodels <- nmodels + 1
+  #
+  modnames <- c("Model 0: Null model", modnames)
+  ns <- sapply(objects, function(x) x$n) 
+  dfs <- sapply(objects, function(x) length(x$coef)) 
+  if(any(ns != ns[1]))
+    stop("models were not all fitted to the same dataset")
+  out <- matrix(rep(NA, 5 * nmodels), ncol = 5)
+  loglik <- sapply(objects, function(x) x$loglik)
+  crit <- sapply(objects, function(x) -2*x$loglik + d*length(x$coef))
+  out[,1] <- ns
+  out[,2] <- loglik
+  out[,3] <- dfs
+  out[,4] <- crit
+  out[,5] <- crit - min(crit)
+  if(d==log(object$n)) critname <- "BIC"
+  else if(d == 2) critname <- "AIC"
+  else critname <- "Criterion"
+  colnames(out) <- c("Num.obs", "logLik", "Df.fit", critname, paste(critname, "diff"))
+  rownames(out) <- 0:(nmodels-1)
+  title <- "Model selection table\n"
+  topnote <- modnames
+  structure(as.data.frame(out), heading = c(title, topnote), 
+            class = c("anova", "data.frame"))
+}
+
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+
+
+if(.Platform$OS.type == "windows") withAutoprint({
+  memory.size()
+  memory.size(TRUE)
+  memory.limit()
+})
+memory.limit(size=56000)
+```
+</div>
+
+
+<div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:350px; overflow-x: scroll; width:100%">
+```{r setup2,include=T}
+url <- "https://ddp.usach.cl/sites/depto-personas/files/HISTORIAL%20DE%20PROCESOS%20DE%20SELECCION%202013-2020.xlsx"
+destfile <- "HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020.xlsx"
+curl::curl_download(url, destfile)
+HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020 <- read_excel(destfile)
+
+simple <- read_html("https://ddp.usach.cl/historial-de-procesos")
+HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020_2<-
+simple %>%
+    html_nodes("p") %>%
+    html_text() %>% data.frame() %>% 
+  janitor::remove_empty("rows") %>% 
+  dplyr::filter(case_when(grepl("En esta página se alojan los procesos",`.`)~F,
+                          grepl("PersonasDirección",`.`)~F,T~T))
+
+colnames(HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020_2)<-"HISTORIAL PROCESOS DE SELECCIÓN  2013-2020"
+
+options(knitr.kable.NA = '')
+```
+</div>
+
+<br>
+	
+
+Las mujeres tienen trayectorias laborales distintas, siendo las mujeres quien acceden a ocupaciones con menores posiciones [@Vives2018]. Usualmente, evitan pedir reconocimiento del trabajo que hacen y preguntan menos por promociones e incrementos de renta que sus pares hombres [@Modrego2017]. Por lo mismo, decidimos generar una base de datos con registros públicos de procesos de selección de una universidad pública de la región metropolitana, para analizar cuáles eran los hazards (oportunidad) de volver a adjudicarse un proceso de selección pero transitando al aumento de renta (disminuir grado) o transitar al estamento profesional (profesionalización). Para ello se utilizaron modelos que asumen riesgos proporcionales entre ambos grupos [@Stel2011].
+
+
+<br>
+
+Las bases de datos se obtuvieron desde https://ddp.usach.cl/historial-de-procesos y https://ddp.usach.cl/sites/depto-personas/files/HISTORIAL%20DE%20PROCESOS%20DE%20SELECCION%202013-2020.xlsx.
+
+<br>
+
+# `r format(Sys.time(),'%B %d, %Y')`
+
+# Consolidación de base de datos
+
+## Paso 1. Limpiar las variables
+
+Apuntamos a separar por filas y columnas ciertas secciones estandarizadas: título del proceso, cargo, lugar, proceso de selección, fecha de postulación (de inicio a fin del proceso disponible) y estado del proceso, y si hubo seleccionado o no. Se puede observar que algunas de las denominaciones se encuentran estandarizadas, pero contienen variaciones que dificultan su estructuración (ej. "seleccinado" en vez de "seleccionado").
+
+<br>
+
+A continuación, se muestran los datos del historial.
+	
+<br>
+
+::: controlly
+```{r 0a, echo=T, paged.print=TRUE,eval=T}
+
+HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020[220:250,]%>% 
+  knitr::kable(size=12, format="markdown")
+```
+:::
+
+A continuación, se muestran los datos de la página.
+	
+<br>
+
+::: controlly
+```{r 0b, echo=T, paged.print=TRUE,eval=T}
+#https://ph-ivshiny.iowa.uiowa.edu/rpterson/MSDshiny/
+#Multistate Simulation Designer
+#Multistate Structure
+#Baseline Hazards
+#Treatment effects
+#Single Simulation
+#Power Simulation
+#References
+
+HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020_2[1:100,]%>% 
+  knitr::kable(size=12, format="markdown")
+```
+:::
+	
+<br>
+
+Por tanto, trabajaremos en la homologación y estructuración de los datos.
+
+<br>
+
+```{r 1, echo=T, paged.print=TRUE,eval=T}
+part_1<-
+  bind_rows(HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020, HISTORIAL_20DE_20PROCESOS_20DE_20SELECCION_202013_2020_2) %>% 
+  dplyr::rename("cat"="HISTORIAL PROCESOS DE SELECCIÓN  2013-2020") %>% 
+  dplyr::mutate(cat=gsub("Cargo: Profesiona, Grado 8", "Cargo: Profesional, Grado 8", cat)) %>%
+  dplyr::mutate(cat=stringr::str_trim(cat)) %>% 
+  dplyr::mutate(cat=gsub("\\s+", " ", cat)) %>% 
+  dplyr::mutate(cat = tolower(cat)) %>% 
+  dplyr::mutate(cat=gsub("\\.$", "", cat)) %>% 
+  dplyr::mutate(cat=gsub(";", ":", cat)) %>% 
+  dplyr::mutate(cat=gsub("Estado\\.", "Estado:", cat)) %>%
+  dplyr::mutate(cat=gsub("finalizado\\,", "finalizado", cat)) %>%
+  dplyr::mutate(cat=gsub("finalizado\\.\\,", "finalizado", cat)) %>%
+  dplyr::mutate(cat=gsub("desierto\\,", "desierto", cat)) %>%
+  dplyr::mutate(cat=gsub("del día", "del", cat)) %>%
+  dplyr::mutate(upper_cnt=ifelse(!grepl("lugar|cargo|fecha|eleccionad",cat),nchar(gsub("[:a-z:]","",cat))/nchar(cat),0)) %>% 
+  dplyr::mutate(cat=gsub("seleccinado", "seleccionado", cat)) %>%
+  #2024-05-02:
+  dplyr::mutate(cat=gsub("ténico", "técnico", cat)) %>%
+  dplyr::mutate(cat=gsub("prosefional", "profesional", cat)) %>%
+  dplyr::mutate(cat=gsub("externa", "externo", cat)) %>%
+  dplyr::mutate(cat=gsub("cerrrado", "cerrado", cat)) %>%
+  dplyr::mutate(cat=gsub("finlizado", "finalizado", cat)) %>%
+  dplyr::mutate(cat=gsub("finzalizado", "finalizado", cat)) %>%
+  dplyr::mutate(cat=gsub("detenido", "pendiente", cat)) %>%
+  dplyr::mutate(cat=gsub("suspendido", "pendiente", cat)) %>%
+  
+  dplyr::mutate(cat=gsub("selecciondo", "seleccionado", cat)) %>%
+  dplyr::mutate(cat=gsub("estadao", "estado", cat)) %>% 
+  dplyr::mutate(cat=gsub("cargdo", "cargo", cat)) %>% 
+  dplyr::mutate(cat=gsub("postulacuión", "postulación", cat)) %>% 
+  dplyr::mutate(cat=gsub("publciación", "postulación", cat)) %>% 
+  dplyr::mutate(cat=gsub("publicación", "postulación", cat)) %>% 
+  dplyr::mutate(cat=gsub("seleción", "selección:", cat)) %>% 
+  dplyr::mutate(cat=gsub("seleccionadas", "seleccionado", cat)) %>% 
+  dplyr::mutate(cat=gsub("seleccionada", "seleccionado", cat)) %>% 
+  dplyr::mutate(cat=gsub("seleccionados", "seleccionado", cat)) %>% 
+  dplyr::mutate(cat=gsub("selecionada", "seleccionado", cat)) %>% 
+  dplyr::mutate(cat=gsub("seleccioada", "seleccionado", cat)) %>%
+  dplyr::mutate(cat=gsub("selecionado", "seleccionado", cat)) %>%
+  dplyr::mutate(cat=gsub("seleccionado ", "seleccionado", cat)) %>%
+  dplyr::mutate(cat=gsub("fecha de postulación ", "fecha", cat)) %>% 
+  dplyr::mutate(cat=gsub("fecha de postulación", "fecha", cat)) %>% 
+  dplyr::mutate(cat=gsub("fecha postulación", "fecha", cat)) %>% 
+  dplyr::mutate(cat=gsub("fecha de postulación ", "fecha", cat)) %>% 
+  dplyr::mutate(cat=gsub("fecha de postulación", "fecha", cat)) %>% 
+  dplyr::mutate(cat=gsub("unidad implementadora", "lugar", cat)) %>%
+  dplyr::mutate(cat=gsub("proceso de selección ", "proceso de selección", cat)) %>%
+  dplyr::mutate(cat=gsub("selección externo", "selección: externo", cat)) %>% 
+  dplyr::mutate(cat=gsub("procesos", "proceso", cat)) %>% 
+  dplyr::mutate(cat=gsub("lugar ", "lugar", cat)) %>% 
+  dplyr::mutate(cat=gsub("estado ", "estado", cat)) %>% 
+  dplyr::mutate(cat=gsub("seleccionado: daniela estay zorricueta y carla astudillo moscoso ", "seleccionado: daniela estay zorricueta y carla astudillo moscoso y mariella cruz barrios", cat)) %>% 
+  dplyr::filter(!grepl("terapia ocupacional - seleccionado",cat)) %>% 
+  dplyr::mutate(cat=dplyr::case_when(grepl("^ver",cat)~NA_character_,T~cat)) %>% 
+  dplyr::mutate(cat=dplyr::case_when(nchar(cat)<=3~NA_character_,T~cat)) %>% 
+  dplyr::mutate(cat_fwd=dplyr::lag(cat))
+# "terapia ocupacional - seleccionado"        "gina carmona gonzalez - daniela mora ayala - maria diaz gonzalez"
+```
+
+<br>
+
+Posteriormente, notamos algunos errores de escritura en algunos nombres, recodificamos las palabras para que sean legibles de acuerdo a nuestras normas de escritura (acentos y ñ's) y luego de eso separamos en columnas de acuerdo al separador `:`. De esta manera, todos los cargos quedan en una columna y los títulos de otros campos en otras.
+
+<br>
+
+::: controlly
+```{r 2, echo=T, paged.print=TRUE,eval=T}
+caso_extrano<-
+as.numeric(unlist(data.table::data.table(part_1, keep.rownames = T)%>% 
+               #no tiene lespacio después para el siguiente proceso de selección
+               #dplyr::mutate(rn=row_number()) %>%   
+               dplyr::mutate(rn=as.numeric(rn)) %>% 
+               dplyr::mutate(rn2=ifelse(grepl("mayerley pacheco",cat),rn,NA_real_)) %>% 
+               filter(dplyr::case_when(is.na(cat_fwd) & is.na(cat)~F, #When y == "", x > 3
+                                       T ~ T) #Otherwise, x < 3
+               ) %>% 
+               dplyr::mutate(rn=dplyr::row_number()) %>% 
+               dplyr::filter(grepl("a749",cat)) %>% dplyr::select(rn)))[1]
+
+part_2<-
+  data.table::data.table(part_1, keep.rownames = T)%>% 
+#no tiene lespacio después para el siguiente proceso de selección
+  #dplyr::mutate(rn=row_number()) %>%   
+  dplyr::mutate(rn=as.numeric(rn)) %>% 
+  dplyr::mutate(rn2=ifelse(grepl("mayerley pacheco",cat),rn,NA_real_)) %>% 
+  filter(dplyr::case_when(is.na(cat_fwd) & is.na(cat)~F, #When y == "", x > 3
+                   T ~ T) #Otherwise, x < 3
+  ) %>% 
+  dplyr::mutate(rn=dplyr::row_number()) %>% 
+  dplyr::mutate(rn2=ifelse(grepl("mayerley pacheco",cat),rn,NA_real_)) %>% 
+  tibble::add_row(tibble::tibble_row(cat = NA_character_, upper_cnt=0, cat_fwd=NA_character_,rn=NA_real_,rn2=NA_real_),.before=max(.$rn2,na.rm=T)+1) %>%
+  tibble::add_row(tibble::tibble_row(cat = NA_character_, upper_cnt=0, cat_fwd=NA_character_,rn=NA_real_,rn2=NA_real_),.before=caso_extrano+1) %>% 
+  dplyr::mutate(cat_lead=dplyr::lag(cat)) %>%
+  dplyr::mutate(cargo=ifelse(is.na(cat_lead),cat,NA_character_)) %>% 
+  dplyr::select(-cat_fwd,-cat_lead) %>% 
+  dplyr::mutate(cat=stringi::stri_trans_general(cat,"Latin-ASCII")) %>% 
+  #dplyr::mutate(ifelse(cat=="proceso de seleccionexterno","proceso de seleccion:externo",cat)) %>% 
+  dplyr::mutate(cat=gsub("seleccionexterno", "seleccion:externo", cat)) %>% 
+  dplyr::mutate(cat=gsub("fecha de postulacion", "fecha", cat)) %>% 
+  tidyr::separate(cat,c("1","2","3","4","5","6"),":") %>%
+  dplyr::mutate(titulos=ifelse(is.na(cargo),`1`,NA_character_)) %>% 
+  dplyr::mutate(rn=dplyr::row_number()) 
+
+#[a749] analista de gestion estrategica
+if(part_2 %>% 
+    dplyr::filter(grepl("\\[",`1`),is.na(cargo)) %>% nrow()>0){warning("Todavía hay procesos de selección que no están categorizados como tal (tal vez carecen de espacio entre el título y el proceso anterior)")}
+if(part_2 %>% 
+    dplyr::filter(grepl("\\[.*\\-.*\\]",`1`),!grepl("acta20|ir20",`1`)) %>%  nrow()>0){warning(paste0("Existen ",nrow(dplyr::filter(part_2,grepl("\\[.*\\-.*\\]",`1`),!grepl("acta20|ir20",`1`)))," procesos que tienen más de una persona seleccionada en él"))}
+
+  #[a683-a684-a685-a686-a687-a688] mayordomo(a)   [a723 - a724 - a725 - a726] bibliotecario(a) [a736 -a737] asistente social estudiantil [a645 - a648] desarrollador(a) técnico(a) ti
+# [a548]-[a549] abogada/o dirección jurídica 
+
+part_2%>%
+  dplyr::slice(1:400)  %>% 
+  knitr::kable(size=12, format="markdown")
+# 
+# dplyr::filter(part_2,grepl("\\[.*\\-.*\\]",`1`),!grepl("acta20|ir20",`1`)) %>% dplyr::select(rn)
+# 1: 13126
+# 2: 13439
+# 3: 13470
+# 4: 13546
+# 5: 13555
+# 6: 13981
+# 7: 14010
+# part_2 %>% dplyr::filter(rn %in% (13546-15):(13546+15))
+```
+:::
+	
+<br>
+
+Generamos columnas con un código único para identificar cada proceso de selección llamado `id_proc_sel`. Adicionalmente, dejamos que toda la información concerniente a cada proceso esté agrupado en la columna `títulos`, y que la columna `cargo` se replique para cada campo de cada proceso. Por el momento, nuestra base de datos se encuentra en formato largo. Por otra parte, los procesos de selección "al rango" e "interno dirigido" se recodificaron como "interno" dado que la mayoría de los procesos incluían esa modalidad de entrega. Por último, [a438] administrativo/a de cobranzas está duplicado. Para prevenir esto, generamos una base de datos que corrigiera todos los procesos que por alguna razón tuvieran campos totalmente duplicados (incluso el id del proceso)
+
+<br>
+
+::: controlly
+```{r 3, echo=T, paged.print=TRUE,eval=T}
+#[a683-a684-a685-a686-a687-a688] mayordomo(a) - ejemplo de que está bien
+#"gina carmona gonzalez - daniela mora ayala - maria diaz gonzalez" --> no se acopla al formato
+
+part_3<-
+part_2 %>% 
+  #2024-05-03: homologar nombres
+  dplyr::mutate(`2`= gsub("desierto,","desierto",`2`)) %>% 
+  dplyr::mutate(`2`= gsub("unidad de radio\\-tv","unidad de radio",`2`)) %>%
+  dplyr::mutate(`2`= gsub("unidad de radio\\- tv","unidad de radio",`2`)) %>% 
+  dplyr::mutate(`2`= gsub("unidad de radio-tv","unidad de radio",`2`)) %>% 
+  dplyr::mutate(`2`=gsub("\\s+", " ", `2`)) %>% 
+  dplyr::mutate(`2`=gsub("^ ", "", `2`)) %>%
+  dplyr::mutate(`2`=gsub(" $", "", `2`)) %>% 
+  tidyr::unite(cat_info, `2`,`3`,`4`,`5`,`6`, na.rm = TRUE, sep = ',') %>% 
+  dplyr::select(cargo, titulos, cat_info) %>% 
+  dplyr::mutate(cargo2=cargo) %>% 
+  tidyr::fill(cargo,.direction="down") %>% 
+  dplyr::mutate(cat_info=stringr::str_trim(cat_info)) %>%
+  dplyr::mutate(cat_info=ifelse(cat_info=="",NA_character_,cat_info)) %>% 
+  dplyr::mutate(cargo2 = ifelse( is.na(cargo2), 0, 1), #remove NA
+                 id_proc_sel = sprintf("%04d",cumsum(cargo2))) %>%
+  dplyr::select(id_proc_sel,cargo, titulos,cat_info) %>% 
+  dplyr::mutate(cat_info=gsub("deisy mundo castro \\- rita perez baeza \\- marina vergara roman","deisy mundo castro - rita perez baeza - marina vergara roman - gina carmona gonzalez - daniela mora ayala - maria diaz gonzalez",cat_info)) %>% 
+  dplyr::filter(!grepl("gina",titulos)) %>% 
+  dplyr::mutate(cat_info=gsub("desierto\\*","desierto",cat_info)) %>% 
+  dplyr::mutate(cat_info=gsub("finalizado\\,\\,","finalizado",cat_info)) %>% 
+  dplyr::mutate(cat_info=gsub("finalizado\\,s","finalizado",cat_info)) %>% 
+  dplyr::mutate(cat_info=gsub("desierto\\,","desierto",cat_info)) %>% 
+ dplyr::mutate(cat_info=gsub("al rango","interno",cat_info)) %>% 
+dplyr::mutate(cat_info=gsub("interno dirigido","interno",cat_info))%>% 
+  #2024-05-02
+  dplyr::mutate(cat_info=gsub("desde el dia","del",cat_info))%>% 
+  dplyr::mutate(cat_info=gsub("al dia ","al ",cat_info))%>% 
+  dplyr::mutate(titulos=gsub("seleccionado/as","seleccionado",titulos)) %>% 
+  dplyr::mutate(titulos=gsub("seleccionado\\(os)","seleccionado",titulos)) %>% 
+  dplyr::mutate(titulos=gsub("seleccionado ","seleccionado",titulos)) %>% 
+  dplyr::mutate(titulos=gsub("seleccionadoy seleccionado","seleccionado",titulos)) %>% 
+    #2024-05-02: reemplaza comas por guiones
+  dplyr::mutate(cat_info = dplyr::case_when(
+    titulos == "seleccionado" & stringr::str_count(cat_info, ",") > 1 ~ gsub(", ", " - ", cat_info),
+    TRUE ~ cat_info
+  )) %>% 
+  dplyr::mutate(id_control_dup=paste0(id_proc_sel,"__",cargo,"__",titulos))%>%
+  dplyr::group_by(id_control_dup) %>% 
+  dplyr::mutate(n_fila_dup=row_number()) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(id_control_dup2=paste0(id_proc_sel,"__",cargo,"__",titulos,"__",n_fila_dup))
+
+#  [a638] cajero(a) b 1° categoria ( caja finanzas)
+part_3_correct<-
+  part_3 %>% 
+  #1755- procesos que duplican
+  dplyr::mutate(id_control_dup=paste0(id_proc_sel,"__",cargo,"__",titulos))%>%
+  dplyr::group_by(id_control_dup) %>% 
+  dplyr::mutate(n_fila_dup=row_number()) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::filter(n_fila_dup>1, !is.na(titulos)) %>% 
+  dplyr::group_by(cargo) %>% 
+  dplyr::mutate(n_fila_dup2=n()) %>%
+  #descarto las filas residuales
+  dplyr::filter(n_fila_dup2>1) %>% 
+  dplyr::ungroup() %>% 
+  #se genera una forma de separar los procesos
+  dplyr::mutate(rn=as.numeric(factor(id_proc_sel))) %>% 
+  dplyr::ungroup() %>% 
+  #generamos id único y hacemos las filas comparables
+  dplyr::mutate(id_proc_sel_original=id_proc_sel) %>% 
+  dplyr::mutate(id_proc_sel=sprintf("%04d",as.numeric(max(part_3$id_proc_sel, na.rm=T))+rn)) %>% 
+  dplyr::mutate(id_control_dup2=paste0(id_proc_sel_original,"__",cargo,"__",titulos,"__",n_fila_dup)) 
+
+part_3_2<-
+part_3 %>% 
+dplyr::filter(!id_control_dup2 %in% unique(part_3_correct$id_control_dup2)) %>% 
+dplyr::bind_rows(part_3_correct[,names(part_3)]) %>% 
+  dplyr::mutate(id_control_dup2=paste0(id_proc_sel,"__",cargo,"__",titulos,"__",n_fila_dup))
+
+part_3_2%>%
+  dplyr::slice(1:400) %>% 
+  knitr::kable(size=12, format="markdown")
+```
+:::
+	
+<br>
+
+Para cada proceso de selección e información asociado a él, le asignamos un número de fila acorde. De ahí que notamos lo siguiente:
+
+- Los casos con 6 filas o les falta la fecha o les falta el estado
+
+- Los casos con 9 filas corresponde a un proceso con 2 seleccionados
+
+- El caso con 5 filas (1755) corresponde a un proceso que habría sido declarado desierto, o que se asumirá así 
+
+Adicionalmente, se corrigen algunos títulos de los campos de interés.
+
+Posteriormente se tendrá que tener cuenta aquellos procesos que tienen más de un seleccionado y se deja en formato ancho.
+
+<br>
+
+::: controlly
+```{r 4, echo=T, paged.print=TRUE,eval=T}
+#2022
+#1950  1835 1755 (debiese ser un proceso separado del a749 )
+# cajero(a) b 1° categoria ( caja finanzas)
+
+if(length(unique(part_3_2$titulos))>7){
+  warning("Más de una categoría (NA,'cargo','lugar','proceso de seleccion','fecha','estado','seleccionado'), por tanto será reemplazado con NA (aunque debe ser investigado)")
+}
+part_4<-
+  part_3_2%>% 
+  dplyr::mutate(titulos= dplyr::case_when(!titulos %in% c("cargo","lugar","proceso de seleccion","fecha","estado","seleccionado")~NA_character_,T~titulos)) %>% 
+  dplyr::group_by(id_proc_sel) %>% 
+  dplyr::mutate(n=n()) %>% 
+  dplyr::ungroup() %>% 
+ #dplyr::filter(n==6)
+  #Los casos con 6 filas o les falta la fecha o les falta el estado
+  #EL caso con 9 filas corresponde a un proceso con 2 seleccionados
+  #El caso con 5 filas (1755) corresponde a un proceso que habría sido declarado desierto, o que se asumirá así 
+  filter(dplyr::case_when(is.na(cat_info) & is.na(titulos)~F, #When y == "", x > 3
+                          T ~ T) #Otherwise, x < 3
+  ) %>%
+  #fila 12711, repite la fecha de postulación, 1705
+  #dplyr::filter(id_proc_sel=="1705")
+  dplyr::mutate(comb=paste0(id_proc_sel,"_",titulos,"_",cat_info)) %>% 
+  group_by(comb) %>% 
+  dplyr::mutate(n2=row_number()) %>% 
+  dplyr::ungroup() %>% 
+  #filtramos sólo con una persona seleccionada
+  dplyr::filter(n2==1) %>% 
+  #caso con más de un seleccionade
+  #dplyr::filter(id_proc_sel=="0070")
+  dplyr::mutate(cat_info=dplyr::case_when(grepl("francisca miranda baez",cat_info) & id_proc_sel=="0070"~"francisca miranda baez - gilberto godoy mendez",T~cat_info)) %>% 
+  filter(dplyr::case_when(cat_info== "gilberto godoy mendez" & id_proc_sel=="0070"~F,T ~ T)) %>%
+  dplyr::mutate(id=paste0(id_proc_sel,"__",cargo,"__",n)) %>%
+  dplyr::group_by(id) %>% 
+  dplyr::mutate(n_fila=n()) %>% 
+  dplyr::mutate(eso=paste0(id,"_",titulos)) %>% 
+     dplyr::group_by(eso) %>% 
+     dplyr::mutate(n_eso=n()) %>% 
+     #dplyr::filter(n_eso>1) %>% 
+  dplyr::mutate(titulos= dplyr::case_when(n_eso>1 & is.na(titulos) & cat_info %in% c("interno","externo")~"proceso de seleccion", T~titulos)) %>%
+  dplyr::mutate(cat_info= dplyr::case_when(grepl("jefe de area",cat_info) & grepl("director unidad",cargo) & is.na(titulos) ~ NA_character_, T~cat_info)) %>%
+     filter(dplyr::case_when(!is.na(cat_info) & is.na(titulos)~F,T ~ T)) %>%
+  #2024-05-02
+  dplyr::mutate(cat_info= dplyr::case_when(!is.na(cat_info) & titulos=="seleccionado" & id_proc_sel=="1755"~"sebastian ortega alvarado",T~cat_info)) %>% 
+  dplyr::filter(dplyr::case_when(grepl("ortega alvarado",titulos) & id_proc_sel=="1755"~F,T ~ T)) %>%
+  
+#Apply process:
+  dplyr::ungroup() %>% 
+  dplyr::mutate(id=paste0(id_proc_sel,"__",cargo,"__",n)) %>%
+  dplyr::group_by(id) %>% 
+  dplyr::mutate(n_fila=n()) %>% 
+  
+  tidyr::pivot_wider(id_cols = c(id), names_from=titulos, values_from = cat_info) %>% 
+  dplyr::ungroup()
+
+#0543 0556 1646 1755 > de una categoría
+#0543 
+#"desierto,  "finalizado,," "finalizado,s"
+
+# dplyr::mutate(eso=paste0(id_proc_sel,"_",titulos)) %>% 
+#     dplyr::group_by(eso) %>% 
+#     dplyr::mutate(n_eso=n()) %>% 
+#     dplyr::filter(n_eso>1) %>% 
+#     dplyr::ungroup()
+
+
+  #daniela estay zorricueta y carla astudillo moscoso
+#gina carmona gonzalez - daniela mora ayala - maria diaz gonzalez
+#1705 y 1755
+
+part_4%>%
+    dplyr::slice(1:400) %>% 
+  knitr::kable(format = "markdown", size=12)
+
+```
+:::
+	
+<br>
+
+La columna seleccionado, se separa por columnas para aquellos casos que tienen más de un seleccionado por proceso. De igual manera, se se eliminan los espacios al inicio y al final de los nombres. Si en la segunda columna de los seleccionados hay caracteres residuales con un largo menor a 2 (ej., un espacio), se considera como valor perdido. Luego, se separa el identificador del proceso de selección en 3 columnas: `id_pub` concerniente al proceso de selección, el `id_proc` que tiene que ver con la denominación y código de recursos humanos del proceso, y el `n_filas` o el número de filas por cada proceso.
+
+<br>
+
+::: controlly	
+```{r 5, echo=T, paged.print=TRUE,eval=T}
+##	[a723 - a724 - a725 - a726] bibliotecario(a) --> pierde el primer usuario
+#[a723 - a724 - a725 - a726] bibliotecario(a)
+
+part_5<-
+  part_4 %>% 
+  tidyr::separate(seleccionado,into=paste0("sel",1:6),sep="-") %>%
+  dplyr::mutate_at(vars(paste0("sel",1:6)),~stringr::str_trim(.)) %>% 
+  dplyr::mutate(sel2=dplyr::case_when(nchar(sel2)<2~NA_character_,T~sel2)) %>%
+  dplyr::mutate(sel3=dplyr::case_when(nchar(sel2)<2~NA_character_,T~sel3)) %>%
+  dplyr::mutate(sel4=dplyr::case_when(nchar(sel2)<2~NA_character_,T~sel4)) %>%
+  dplyr::mutate(sel5=dplyr::case_when(nchar(sel2)<2~NA_character_,T~sel5)) %>%
+  dplyr::mutate(sel6=dplyr::case_when(nchar(sel2)<2~NA_character_,T~sel6)) %>%
+  tidyr::separate(id,c("id_pub","id_proc","n_filas"),"__") %>% 
+  dplyr::mutate(`proceso de seleccion`= stringr::str_replace_all(`proceso de seleccion`, "[^[:alnum:][:space:]]", "")) %>% 
+  dplyr::mutate(`estado`= stringr::str_replace_all(`estado`, "[^[:alnum:][:space:]]", "")) 
+
+part_5%>%
+    dplyr::slice(1:400) %>% 
+  knitr::kable(format = "markdown", size=12)
+```
+:::
+	
+<br>
+
+De todas maneras, se pesquisaron ciertos errores de tipeo (ej. administrivo), convenciones distintas para denominar categorías que llevarían a ambiguedad de no modificarse (ej. 15,076 vs. 15076), junto con espacios y comas. Por último, se estandarizó el estamento al cual corresponde el proceso de selección.
+
+<br>
+
+```{r 6, echo=T, paged.print=TRUE,eval=T}
+#[a723 - a724 - a725 - a726] bibliotecario(a)
+#[a683-a684-a685-a686-a687-a688] mayordomo(a)
+
+part_6 <-
+  part_5 %>% 
+  dplyr::mutate(cargo=gsub("axuliar|axiliar", "auxiliar", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("11hrs", "11 hrs", cargo)) %>% 
+  dplyr::mutate(cargo=gsub(",,", ",", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("19,6640", "19.664", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("15076", "15.076", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("n°", "", cargo)) %>% 
+  
+  dplyr::mutate(cargo=gsub("administrivo", "administrativo", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("°", "", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("administrativo 20", "administrativo grado 20", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("administrativo 12", "administrativo grado 12", cargo)) %>% 
+  dplyr::mutate(cargo=gsub(", ", " ", cargo)) %>% 
+  dplyr::mutate(cargo=gsub(" ,", " ", cargo)) %>% 
+  dplyr::mutate(cargo=gsub(" , ", " ", cargo)) %>%
+  dplyr::mutate(cargo=gsub("  ", " ", cargo)) %>%
+  dplyr::mutate(cargo=gsub("grado17", "grado 17", cargo)) %>%
+  dplyr::mutate(cargo=gsub("tecnico 1/2 jornada vespertino grado 17", "tecnico grado 17 (1/2 jornada vespertina)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("tecnico grado 20 1/2 jornada", "tecnico grado 20 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("tecnico grado 20 al 19", "tecnico grado del 20 al 19", cargo)) %>%
+  dplyr::mutate(cargo=gsub("tecnico grado 14 1/2 jornada", "tecnico grado 14 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("tecnico grado 14 al 12", "tecnico grado del 14 al 12", cargo)) %>%
+  dplyr::mutate(cargo=gsub("tecnico 17", "tecnico grado 17", cargo)) %>%
+  #dplyr::mutate(cargo=gsub("1/4 jornada", "(1/4 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("1/4 de jornada", "1/4 jornada", cargo)) %>%
+  dplyr::mutate(cargo=gsub("6 1/4 jornada", "6 (1/4 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("13 1/2 jornada", "13 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("10 1/2 jornada", "10 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("13 1/4 jornada", "13 (1/4 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("08 al 06", "del 08 al 06", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado 6", "profesional grado 06", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado 8", "profesional grado 08", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional,grado 10 al 8", "profesional grado del 10 al 08", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional 12", "profesional grado 12", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado 10 al 8", "profesional grado del 10 al 08", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional,grado 10", "profesional grado 10", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional 1/2 jornada grado 13", "profesional grado 13 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado 10 media jornada", "profesional grado 10 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado 7", "profesional grado 07", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional 13", "profesional grado 13", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional 10", "profesional grado 10", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional por 11 o 22 horas ley nº 15 076", "11 o 22 hrs, ley 15,076", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional 14 media jornada", "profesional 14 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado 9", "profesional grado 09", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado10", "profesional grado 10", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional por 11 horas a contrata", "11 hrs, ley 15,076", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional por 22 horas a contrata", "22 hrs, ley 15,076", cargo)) %>%
+  dplyr::mutate(cargo=gsub("15,076", "15076", cargo)) %>%
+  dplyr::mutate(cargo=gsub("19,664", "19664", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional del grado del 08 al 06", "profesional grado del 08 al 06", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado 11 1/2 jornada", "profesional grado 11 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado 13 \\(media jornada\\)", "profesional grado 13 (1/2 jornada)", cargo))%>%
+  dplyr::mutate(cargo=gsub("profesional grado 13 media jornada", "profesional grado 13 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional 14 \\(1/2 jornada\\)", "profesional grado 14 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("profesional grado del 10 al 8", "profesional grado del 10 al 08", cargo)) %>%
+  dplyr::mutate(cargo=gsub("auxiliar 21", "auxiliar grado 21", cargo)) %>%  
+  dplyr::mutate(cargo=gsub("auxiliar 23", "auxiliar grado 23", cargo)) %>%  
+  dplyr::mutate(cargo=gsub("auxiliar grado21", "auxiliar grado 21", cargo)) %>%  
+  
+  dplyr::mutate(estamento= dplyr::case_when(grepl("rofes",cargo)~"profesional",
+                                            grepl("profes",cargo)~"profesional",
+                                            grepl("ley",cargo)~"médicos y dentistas",
+                                            grepl("tecnico",cargo)~"tecnico",
+                                            grepl("auxiliar",cargo)~"auxiliar",
+                                            grepl("admin",cargo)~"administrativo",
+                                            T~NA_character_)) 
+  #janitor::tabyl(estamento)
+#part_6 %>% janitor::tabyl(estamento)
+```
+
+<br>
+
+Se sigue reemplazando aquellas entradas que tienen más de un espacio de manera de homologar dichos valores, aquella información mal ingresada en un campo (ej. nombre de una seleccionada).
+
+<br>
+
+```{r 7, echo=T, paged.print=TRUE,eval=T}
+#[a723 - a724 - a725 - a726] bibliotecario(a)
+#[a683-a684-a685-a686-a687-a688] mayordomo(a)
+names(part_6)[grepl("proceso de",names(part_6))]<- "proc_sel"
+
+part_7 <-
+  part_6 %>% 
+  dplyr::mutate(proc_sel=gsub("interno\\,", "interno", "proceso de seleccion")) %>%
+  #distinct(`proceso de seleccion`) %>% 
+  dplyr::mutate(estado=dplyr::case_when(proc_sel=="desierto"~"desierto",T~estado)) %>% 
+  dplyr::mutate(proc_sel=dplyr::case_when(proc_sel=="desierto"~NA_character_,T~proc_sel)) %>% 
+  #dplyr::filter("proc_sel"=="desierto")
+  dplyr::mutate(estado=gsub("\\,|\\*", "", estado)) %>%
+  dplyr::mutate(estado=gsub("finlizado","finalizado", estado)) %>%
+  dplyr::mutate(estado=gsub("finalizados","finalizado", estado)) %>%
+  dplyr::mutate(estado=gsub("finalizada","finalizado", estado)) %>%
+  #dplyr::filter(estado=="claudia pizarro vera"|estado=="luciano leyton silva")
+  dplyr::mutate(estado=stringr::str_trim(estado)) %>%
+  dplyr::mutate(proc_sel=dplyr::case_when(proc_sel=="desierto" & id_proc=="[a723 - a724 - a725 - a726] bibliotecario(a)"~"Interno",T~"proc_sel"))%>% 
+  dplyr::mutate(sel1=dplyr::case_when(estado=="claudia pizarro vera"~"claudia pizarro vera",T~sel1)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(estado=="luciano leyton silva"~"luciano leyton silva",T~sel1)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(estado=="ana maria leiva orellana"~"ana maria leiva",T~sel1)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(estado=="natalia gonzalez  santander"~"natalia gonzalez santander",T~sel1)) %>%
+  dplyr::mutate(estado=gsub("claudia pizarro vera|luciano leyton silva","finalizado", estado))
+  #distinct(estado)
+```
+
+<br>
+
+Se agregan variables que permitan distinguir si son procesos para puestos en jornada vespertina o diurna. De igual manera, se corrigieron algunos formatos respecto a la jornada para homologarlos. De igual forma, se homologó el formato de las horas de médicos y dentistas. Por último, hubo algunos procesos de selección que se publicaron con un rango de renta (ej. 08 al 10).
+
+<br>
+
+::: controlly	
+```{r 8, echo=T, paged.print=TRUE,eval=T}
+part_8 <-
+  part_7 %>% 
+  dplyr::mutate(n_filas=as.numeric(n_filas)) %>% 
+  #distinct(fecha)
+  #janitor::tabyl(estamento)
+  #dplyr::filter(estamento!="médicos y dentistas") %>% 
+  #janitor::tabyl(cargo)
+  dplyr::mutate(vesp=ifelse(grepl("vesp",cargo),1,0)) %>% 
+  dplyr::mutate(cargo=gsub(" vespertina","", cargo)) %>%
+  dplyr::mutate(cargo=gsub("\\(vespertino\\)","", cargo)) %>%
+  dplyr::mutate(cargo=gsub("\\( vespertino\\)","", cargo)) %>%
+  dplyr::mutate(cargo=gsub("auxiliar grado 21 1/2 jornada","auxiliar grado 21 (1/2 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("auxiliar grado 23 3/4 de jornada","auxiliar grado 23 (3/4 jornada)", cargo)) %>%
+  dplyr::mutate(cargo=gsub("auxiliar grado 21 3/4 jornada","auxiliar grado 21 (3/4 jornada)", cargo)) %>% 
+  
+  dplyr::mutate(cargo=gsub("11 hrs ley 15076","ley 15076 11 hrs", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("11 hrs ley 19664","ley 19664 11 hrs", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("11 o 22 hrs ley 15076","ley 15076 11 o 22 hrs", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("22 hrs ley 15076","ley 15076 22 hrs", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("22 hrs ley 19664","ley 19664 22 hrs", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("33 hrs ley 15076","ley 15076 33 hrs", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("44 hrs ley 15076","ley 15076 44 hrs", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("44 hrs ley 19664","ley 19664 44 hrs", cargo)) %>% 
+  dplyr::mutate(cargo=gsub("adminsitrativo","administrativo", cargo)) %>% 
+  
+  tidyr::separate(cargo,c("est","grado"),"grado ") %>% 
+  tidyr::separate(grado,c("grado","jornada")," \\(") %>% 
+  dplyr::mutate(jornada=gsub("\\)","", jornada)) %>% 
+  dplyr::mutate(grado_n=as.numeric(grado)) %>% 
+  dplyr::mutate(grado_n=dplyr::case_when(grado=="del 20 al 19"~18,T~grado_n)) %>% 
+  dplyr::mutate(grado_n=dplyr::case_when(grado=="del 17 al 15"~16,T~grado_n)) %>% 
+  dplyr::mutate(grado_n=dplyr::case_when(grado=="del 14 al 12"~13,T~grado_n)) %>% 
+  dplyr::mutate(grado_n=dplyr::case_when(grado=="del 10 al 08"~9,T~grado_n)) %>% 
+  dplyr::mutate(grado_n=dplyr::case_when(grado=="del 08 al 06"~7,T~grado_n)) %>% 
+  dplyr::select(-estamento)
+  #distinct(cargo)
+  
+#nchar("del 07") #6
+#ver los que no tienen "al"
+#investigar el cargo y las separaciones
+#identificar los distintos lugares
+#proceso de selección, ver si el interno y el externo están bien especificados
+#ver que hayan sólo los estados que corresponden
+
+part_8%>%
+  dplyr::slice(1:400) %>% 
+  knitr::kable(format = "markdown", size=12)
+```
+:::
+	
+<br>
+
+Para separar adecuadamente las fechas, primero hay que limpiarla adecuadamente. En este caso, se corrige el formato de las fechas, de manera que no hayan espacios adicionales, se eliminan los valores erróneos (ej., cerrado).
+
+<br>
+
+```{r 9, echo=T, paged.print=TRUE,eval=T}
+part_9 <-
+  part_8 %>%  
+  dplyr::mutate(cnt_del=stringr::str_count(fecha, "\\bdel\\b")) %>% 
+  dplyr::mutate(cnt_de=stringr::str_count(fecha, "\\bde\\b")) %>% 
+  #dplyr::filter(cnt_de<=2, cnt_del==1) %>%
+  #dplyr::mutate(cargo=gsub("33 hrs ley 15076","ley 15076 33 hrs", cargo)) %>% 
+  dplyr::mutate(fecha=dplyr::case_when(grepl("^[0-9]*$", substring(fecha, 1,1))~paste("del ",fecha,sep=" "),T~fecha)) %>% 
+  dplyr::mutate(fecha=gsub("  "," ", fecha)) %>% 
+  #dplyr::filter(grepl("^[^0-9]*$",fecha)) %>% 
+  dplyr::mutate(fecha=gsub("^cerrado$",NA_character_, fecha))  
+  #83 filas
+```
+
+<br>
+
+Se continúa la estandarización de fechas mediante casos más específicos y basados en la casuística.
+
+<br>
+
+::: controlly
+```{r 10, echo=T, paged.print=TRUE,eval=T}
+part_10<-
+part_9 %>% 
+  dplyr::mutate(fecha=gsub("de 20","del 20", fecha)) %>% 
+  dplyr::mutate(fecha=gsub("2105","2015", fecha)) %>% 
+  dplyr::mutate(fecha=gsub("o 20","o del 20", fecha)) %>% 
+  #dplyr::filter(grepl("\\,\\}",fecha)) %>% 
+  dplyr::mutate(fecha=gsub(" hasta el "," al ", fecha)) %>% 
+  dplyr::mutate(fecha=gsub("al al ","al ", fecha)) %>% 
+  dplyr::mutate(fecha=gsub("\\,\\}","", fecha)) %>% 
+  dplyr::mutate(fecha=gsub("\\,\\+","", fecha)) %>% 
+  dplyr::mutate(fecha=gsub(" a las 12,00 hrs$","", fecha)) %>% 
+  dplyr::mutate(fecha=gsub(" a las 14,00 hrs$","", fecha)) %>% 
+  dplyr::mutate(fecha=gsub("\\, a las 17,00 hrs$","", fecha)) %>% 
+  dplyr::mutate(fecha=gsub("\\, hasta las 17,00 hrs$","", fecha)) %>% 
+  dplyr::mutate(fecha=gsub("\\, hasta las 13,00 hrs$","", fecha)) %>%  
+  dplyr::mutate(fecha=gsub("\\, al mediodia$","", fecha)) %>%  
+  dplyr::mutate(fecha=gsub(" abril 20"," abril del 20", fecha)) %>%  
+  dplyr::mutate(fecha=gsub(" septiembre 2014"," septiembre del 2014 ", fecha)) %>%  
+  #distinct(fecha) %>% View()
+  tidyr::separate(fecha, into=c("fech_in","fech_ter"),sep= " al ") 
+  #dplyr::mutate(fech_ter=as.Date(fech_ter,format="%d de %m del %Y"))
+
+
+part_10 %>% 
+  dplyr::slice(1:400)%>% 
+  knitr::kable(format = "markdown", size=12)
+```
+:::
+	
+<br>
+
+Se continúa la estandarización de fechas mediante casos más específicos y basados en la casuística y reemplazo aún más específicos.
+
+<br>
+
+::: controlly
+```{r 11, echo=T, paged.print=TRUE,eval=T}
+
+part_11<-
+part_10 %>% 
+  #195  -- date like %d de %B del %Y del 20 junio del 2019
+  #228  -- date like %d de %B del %Y 23 abril del 2019    
+  #273  -- date like %d de %B del %Y de 14 enero del 2018 
+  #698  -- date like %d de %B del %Y 08 junio del 2017    
+  #756  -- date like %d de %B del %Y 0 5de mayo del 2017  
+  dplyr::mutate(fech_ter=gsub("del  20 de junio del 2019","20 de junio del 2019", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("de 14 enero"," 14 de enero", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("08 junio del","08 de junio del", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("0 5de mayo del 2017","05 de mayo del 2017", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("23 abril del 2019"," 23 de abril del 2019", fech_ter)) %>%  
+  
+  dplyr::mutate(fech_ter=gsub("del 20 junio del 2019","20 de junio del 2019", fech_ter)) %>%
+  dplyr::mutate(fech_ter=gsub("01 junio del 2017","01 de junio del 2017", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("02 mayo del 2017","02 de mayo del 2017", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("10 de marzo de 2015","10 de marzo del 2015", fech_ter)) %>%  
+  
+  dplyr::mutate(fech_ter=gsub("01 junio del 2017","01 de junio del 2017", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("02 mayo del 2017","02 de mayo del 2017", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("10 de marzo de 2015","10 de marzo del 2015", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("03 noviembre del 2014","03 de noviembre del 2014", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("14 marzo del 2014","14 de marzo del 2014", fech_ter)) %>%  
+  dplyr::mutate(fech_ter=gsub("12 marzo del 2014","12 de marzo del 2014", fech_ter)) %>%
+  dplyr::mutate(fech_ter=readr::parse_date(fech_ter,
+    format = "%d de %B del %Y",
+    na = c("", "NA"),
+    locale = readr::locale("es"),
+    trim_ws = TRUE))
+
+part_11 %>% 
+  dplyr::slice(1:400) %>% 
+  knitr::kable(format = "markdown", size=12)
+```
+:::
+
+<br>
+
+En algunos procesos de selección hubo personas que quedaron seleccionadas en el mismo proceso. Estas personas se searan  quedan alojados en `sel2` y `sel3`.
+
+<br>
+
+```{r 12, echo=T, paged.print=TRUE,eval=T}
+part_12 <-
+  part_11 %>% 
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="victor soto valdivia y claudia orellana garrido"~"claudia orellana garrido",
+                                      T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="victor soto valdivia y claudia orellana garrido"~"victor soto valdivia",
+                                      T~sel1)) %>% 
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="jose carrizo craig y reinaldo barrios jeria"~"jose carrizo craig",
+                                      T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="jose carrizo craig y reinaldo barrios jeria"~"reinaldo barrios jeria",
+                                      T~sel1)) %>% 
+  dplyr::mutate(sel3=dplyr::case_when(sel1=="daniela estay zorricueta y carla astudillo moscoso y mariella cruz barrios"~"mariella cruz barrios",T~sel3)) %>% 
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="daniela estay zorricueta y carla astudillo moscoso y mariella cruz barrios"~"carla astudillo moscoso",T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="daniela estay zorricueta y carla astudillo moscoso y mariella cruz barrios"~"daniela estay zorricueta",T~sel1)) %>% 
+  
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="juan romero verdun y javiera diaz escobar"~"javiera diaz escobar",T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="juan romero verdun y javiera diaz escobar"~ "juan romero verdun",T~sel1)) %>% 
+  
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="juan carlos calderon y darwin concha"~"juan carlos calderon",T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="juan carlos calderon y darwin concha"~"darwin concha",T~sel1)) %>% 
+  
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="barbara vasquez malhue y  victor rojas chiguaihuen"~"victor rojas chiguaihuen",T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="barbara vasquez malhue y  victor rojas chiguaihuen"~"barbara vasquez malhue",T~sel1)) %>% 
+  
+  dplyr::mutate(sel3=dplyr::case_when(sel1=="claudia orellana alcaide - leyle castro vollaire - gabriela sanchez arriola"~"claudia orellana alcaide",T~sel3)) %>% 
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="claudia orellana alcaide - leyle castro vollaire - gabriela sanchez arriola"~"leyle castro vollaire",T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="claudia orellana alcaide - leyle castro vollaire - gabriela sanchez arriola"~"gabriela sanchez arriola",T~sel1)) %>% 
+  
+  dplyr::mutate(sel1=gsub("aviles zapata, juan","juan aviles zapata", sel1)) %>% 
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="francisca moraga mena - victoria portales oliva"~"francisca moraga mena",T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="francisca moraga mena - victoria portales oliva"~"victoria portales oliva",T~sel1)) %>% 
+  dplyr::mutate(sel1=gsub("aviles zapata, juan","juan aviles zapata", sel1)) %>% 
+  dplyr::mutate(sel3=dplyr::case_when(sel1=="gina carmona gonzalez - daniela mora ayala - maria diaz gonzalez"~"gina carmona gonzalez",T~sel3)) %>% 
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="gina carmona gonzalez - daniela mora ayala - maria diaz gonzalez"~"daniela mora ayala",T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="gina carmona gonzalez - daniela mora ayala - maria diaz gonzalez"~"maria diaz gonzalez",T~sel1)) %>% 
+  dplyr::mutate(sel1=gsub("aviles zapata, juan","juan aviles zapata", sel1)) %>% 
+  
+  dplyr::mutate(sel2=dplyr::case_when(sel1=="daniela estay zorricueta y carla astudillo moscoso"~"carla astudillo moscoso",T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(sel1=="daniela estay zorricueta y carla astudillo moscoso"~"daniela estay zorricueta",T~sel1)) %>% 
+  
+  dplyr::mutate(sel2=dplyr::case_when(grepl("maria morales aguirre y",sel1)~"vania sepulveda cabrera",T~sel2)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(grepl("maria morales aguirre y",sel1)~"maria morales aguirre",T~sel1)) 
+```
+
+<br>
+
+Mediante el comando `fuzzyjoin::stringdist_join`, buscamos de la lista de seleccionados/as en procesos de selección, aquellas combinaciones de nombres y apellidos que se parezcan de acuerdo al criterio de distancia Jaro-Winkler (`jw`).
+
+<br>
+
+::: controlly
+```{r 13b, echo=T, paged.print=TRUE,eval=T}
+
+fuzzyjoin::stringdist_join(data.frame(name=part_12$sel1), data.frame(name=part_12$sel1), 
+                by = "name",
+                mode = "left",
+                ignore_case = FALSE, 
+                method = "jw", 
+                max_dist = .25, #Maximum distance allowed for a match. Expressed either as integer, or as a fraction of the pattern length (will be replaced by the smallest integer not less than the corresponding fraction), or a list with possible components
+                distance_col = "dist") %>%
+  dplyr::filter(dist>0) %>% 
+  arrange(dist) %>% 
+  dplyr::mutate(name_conc1=paste0(name.x,"_",name.y)) %>% 
+  dplyr::mutate(name_conc2=paste0(name.y,"_",name.x)) %>% 
+  dplyr::group_by(name_conc1) %>% 
+  dplyr::mutate(name_conc1_n=row_number()) %>% 
+  dplyr::ungroup(name_conc1) %>% 
+  dplyr::group_by(name_conc2) %>% 
+  dplyr::mutate(name_conc2_n=row_number()) %>% 
+  dplyr::ungroup(name_conc2) %>% 
+  dplyr::filter(name_conc1_n==1, name_conc2_n==1) %>% 
+  dplyr::mutate(name_conc2_lag=lag(name_conc2)) %>% 
+  dplyr::filter(name_conc1!=name_conc2_lag) %>% 
+  slice(1:20) %>% 
+  knitr::kable(format = "markdown", size=12)
+```
+:::
+
+<br>
+
+Se cambian algunos casos que en otros procesos tenían segundo nombre, errores de tipeo, intervambio en el orden del apelligo y el nombre, entre otros motivos.
+
+<br>
+
+```{r 14, echo=T, paged.print=TRUE,eval=T}
+part_13 <-
+part_12 %>% 
+  dplyr::mutate(sel1=gsub("rene eduardo estay zorricueta","rene estay zorricueta", sel1)) %>%  
+  dplyr::mutate(sel1=gsub("jaime antonio arce lopez","jaime arce lopez", sel1)) %>%  
+  dplyr::mutate(sel1=gsub("ahumada castillo danilo","danilo ahumada castillo", sel1)) %>%  
+  dplyr::mutate(sel1=gsub("mauricio andres valenzuela arancibia","mauricio valenzuela arancibia", sel1)) %>%  
+  dplyr::mutate(sel1=gsub("maria paz cubillos castro","maria cubillos castro", sel1)) %>%  
+  dplyr::mutate(sel1=gsub("susana  cerda arancibia","susana cerda arancibia", sel1)) %>%  
+  dplyr::mutate(sel1=gsub("mauricio  rojas martinez","mauricio rojas martinez", sel1)) %>%  
+  dplyr::mutate(sel1=gsub("enzo borroni ricardo","enzo borroni ricardi", sel1)) %>%  
+  dplyr::mutate(sel1=gsub("mabel matsumotu jimenez","mabel matsumoto jimenez", sel1)) %>%  
+  dplyr::mutate(sel1=gsub("marta adriazola  moreno","marta adriazola moreno", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("desierto",NA_character_, sel1)) %>% 
+  dplyr::mutate(sel1=gsub("marianella munoz carvajal","marianela munoz carvajal", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("boin maraboli maria susana","susana boin maraboli", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("toledo gerardo","gerardo toledo villegas", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("mauricio  rojas martinez","mauricio rojas martinez", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("paola sirandoni politis","paula sirandoni politis", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("wilson gutierrez$","wilson gutierrez galdamez", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("enzo borroni ricardo","enzo borroni ricardi", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("ricardo francesconi$","ricardo francesconi aravena", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("andres esposito$","andres esposito vera", sel1)) %>% 
+dplyr::mutate(sel1=gsub("joselyn maulen henriquez","joselyn maulen manriquez", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("miguel arriagada$","miguel arriagada ortega", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("viteri madrid piero","piero viteri madrid", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("fierro soledad cristina","soledad cristina fierro", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("flores retamal veronica consuelo","veronica consuelo flores retamal", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("kristel irribarren vera","kristel iribarren vera", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("gomez soto sandra","sandra gomez soto", sel1)) %>% 
+  dplyr::mutate(sel1=dplyr::case_when(grepl("soto sandra", sel1)~"sandra gomez soto",T~sel1))%>% 
+  dplyr::mutate(sel1=gsub(",", "", sel1)) %>%
+  dplyr::mutate(sel2=gsub(",", "", sel2)) %>% 
+  dplyr::mutate(sel3=gsub(",", "", sel3)) %>%
+  dplyr::mutate(sel4=gsub(",", "", sel4)) %>%
+  dplyr::mutate(sel5=gsub(",", "", sel5)) %>%
+  dplyr::mutate(sel6=gsub(",", "", sel6)) %>%
+  dplyr::mutate(sel6=gsub("^ ", "", sel6)) %>% 
+  dplyr::mutate(sel5=gsub("^ ", "", sel5)) %>% 
+  dplyr::mutate(sel4=gsub("^ ", "", sel4)) %>%   
+  dplyr::mutate(sel3=gsub("^ ", "", sel3)) %>% 
+  dplyr::mutate(sel2=gsub("^ ", "", sel2)) %>% 
+  dplyr::mutate(sel1=gsub("^ ", "", sel1)) %>% 
+  dplyr::mutate(sel1=gsub("\\s+", " ", sel1)) %>% 
+  dplyr::mutate(sel2=gsub("\\s+", " ", sel2)) %>% 
+  dplyr::mutate(sel3=gsub("\\s+", " ", sel3)) %>% 
+  dplyr::mutate(sel4=gsub("\\s+", " ", sel4)) %>% 
+  dplyr::mutate(sel5=gsub("\\s+", " ", sel5)) %>% 
+  dplyr::mutate(sel6=gsub("\\s+", " ", sel6))
+```
+
+<br>
+
+La base de datos es adaptada a un formato largo (long), en que la fila representaba cada proceso de selección, a pasar de representar cada seleccionado. Por esta razón es que no tiene motivo seguir contando con la columna `sel2` a  `sel6` (sexo seleccionado en el proceso). Adicionalmente, se corrige la identidad de una persona para dar continuidad al formateo de nombres efectuado en bloques anteriores.
+
+<br>
+
+
+```{r 15, echo=T, paged.print=TRUE,eval=T}
+part_14 <-
+part_13 %>% 
+  tidyr::pivot_longer(cols=paste0("sel",1:6), names_to="seleccionado") %>% 
+  dplyr::filter(dplyr::case_when(is.na(value) & grepl("sel[2-6]", seleccionado)~F,
+                                 T~T)) %>%
+  dplyr::rename("id_seleccionado"="value") %>% 
+  dplyr::select(id_seleccionado,fech_ter,everything()) %>%
+  #dplyr::filter(estado!="finalizado",!is.na(id_seleccionado))
+  dplyr::filter(!grepl("ley",est), estado=="finalizado") %>% 
+  dplyr::mutate(sel1=gsub("gomez  soto sandra","gomez soto sandra", id_seleccionado))
+```
+
+<br>
+
+Para contar con la variable sexo, se debieron interpretar los nombres de cada seleccionado de manera manual. La tabla de conversión se encuentra disponible en el siguiente (enlace)["http://prueba2misp.6te.net/conversion_sex.csv"]. Adicionalmente, se eliminan variables utilizadas para estandarizar la fecha y aquellas que no tienen relación con la actual estructura de la base de datos. Si no hay certeza del sexo, se utiliza el paquete `guaguas` de manera de seleccionar el sexo más probable a partir del nombre de manera probabilística.
+
+<br>
+
+::: controlly
+```{r 16, echo=T, paged.print=TRUE,eval=T}
+conversion_sex <- readr::read_delim("http://prueba2misp.6te.net/conversion_sex.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+library(guaguas)
+
+perc_guaguas<-
+guaguas %>% 
+  dplyr::filter(anio>=1980, anio<=2005) %>% 
+    dplyr::group_by(nombre) %>% 
+    dplyr::mutate(perc_m=length(n[sexo=="F"])/n()) %>%
+    dplyr::mutate(perc_h=length(n[sexo=="M"])/n()) %>% 
+    #dplyr::top_n(perc,1) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::filter(perc_m>.5|perc_h>.5) %>% 
+    dplyr::mutate(perc=dplyr::case_when(perc_m>perc_h~"m",perc_h>perc_m~"h",T~NA_character_)) %>% 
+    dplyr::mutate(nombre=stringr::str_trim(tolower(stringi::stri_trans_general(nombre,"Latin-ASCII"))))%>%     dplyr::distinct(nombre, .keep_all=T)
+
+#copiar_nombres(data.frame(unique(part_14$id_seleccionado)))
+part_15 <-
+  part_14 %>% 
+  dplyr::left_join(conversion_sex,by=c("id_seleccionado"="names")) %>% 
+  dplyr::select(-cnt_del, -cnt_de, -sel1) %>% 
+  dplyr::arrange(id_seleccionado, fech_ter) %>%
+  dplyr::mutate(id_seleccionado2=id_seleccionado) %>% 
+  tidyr::separate(id_seleccionado2, sep=" ", into=paste0("name",1:6)) %>% 
+  dplyr::left_join(perc_guaguas[,c("nombre","perc")],by=c("name1"="nombre")) %>% 
+  dplyr::select(-paste0("name",2:6)) %>% 
+  dplyr::mutate(sex=dplyr::case_when(is.na(sex) & perc=="m"~"m",
+                                     is.na(sex) & perc=="h"~"m",
+                                     T~sex))
+
+part_15%>% 
+   dplyr::slice(1:400) %>% 
+  knitr::kable(format = "markdown", size=12)
+```
+:::
+	
+<br>
+
+De igual manera, se anonimizan los datos de personas seleccionadas, se ordena la base de datos por id_seleccionado y fecha de termino del proceso de selección. Asimismo, se eliminaron los espacios en blanco en el el estamento.
+
+<br>
+
+```{r 17, echo=T, paged.print=TRUE,eval=T}
+part_16 <-
+  part_15 %>% 
+   dplyr::mutate(id_seleccionado=anonymizer::anonymize(id_seleccionado, .algo = "sha256", .seed = 2125)) %>% 
+  dplyr::arrange(id_seleccionado, fech_ter) %>% 
+  dplyr::filter(!is.na(fech_ter)) %>% 
+  dplyr::mutate(est=stringr::str_trim(est))
+```
+
+Adicionalmente, se eliminaron usuarios que tuvieran datos perdidos en la fecha de ingreso, pasando de contar con `r nrow(part_15)` registros a contar con `r nrow(part_16)` registros.
+
+<br>
+
+## Paso 2. Análisis descriptivo
+
+¿Cuántas personas han resultado seleccionadas más de una vez en la ventana de seguimiento?
+
+
+```{r 18-desc1, echo=T, paged.print=TRUE,eval=T, fig.align="center", fig.cap="Seleccionados en procesos"}
+part_16 %>% group_by(id_seleccionado) %>% 
+  summarise(cnt=n()) %>%  janitor::tabyl(cnt) %>% 
+  dplyr::ungroup()%>%
+  dplyr::mutate(valid_percent=scales::percent(n/(sum(n)-sum(n[is.na(cnt)])),2),
+                valid_percent=ifelse(is.na(cnt),NA,valid_percent),
+                percent=scales::percent(n/(sum(n)),2)) %>% 
+  dplyr::mutate(label=dplyr::case_when(cnt==1~paste0("Seleccionados en un\nproceso\n",percent,"(n=",n,")"),
+                                       cnt==2~paste0("Seleccionados en 2\nprocesos\n",percent,"(n=",n,")"),
+                                       cnt==3~paste0("Seleccionados en 3\nprocesos\n",percent,"(n=",n,")"),
+                                       cnt==4~paste0("Seleccionados en 4\nprocesos\n",percent,"(n=",n,")")
+                                       )) %>% 
+  plot_ly(labels = ~cnt, values = ~n, type = 'pie',hole = 0.4,textposition = 'outside',textinfo = 'text', sort = FALSE,
+          automargin = TRUE,
+          text = ~label,
+          direction = "clockwise",
+          textfont = list(color = "black", size = 13),
+          marker = list(colors = gray.colors(3))) %>%
+  plotly::layout(yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T), showlegend = FALSE,autosize = T)
+```
+
+<br>
+
+Se definen los eventos de interés: la profesionalización y el cambio de grado en la variable `evento`. Posteriormente, se codifica en numéricos(`event_n`). Por último, transforma en número la fecha de término del proceso de selección. `fech_ter_num`. Se puede observar que el documento fue creado el `r format(Sys.time(), '%d %B, %Y')`, por lo que se asume que esta como fecha de censura administrativa.
+
+
+<br>
+
+```{r 18-desc3, echo=T, paged.print=TRUE,eval=T}
+part_17<-
+part_16 %>% 
+  #cambió las fechas por números desde 1970-01-01
+  dplyr::mutate(fech_ter_num=unclass(fech_ter)) %>% 
+  dplyr::group_by(id_seleccionado) %>% 
+  #recuento de procesos adjudicados por usuario
+  dplyr::mutate(n_proc=n()) %>% 
+  #define eventos por usuario
+  dplyr::mutate(evento=dplyr::case_when(grado_n> lead(grado_n) & est ==lead(est)~"Baja grado, mantiene estamento",
+                                          !est %in% c("profesional") & lead(est)=="profesional"~"Profesionaliza",
+                                          grado_n == lead(grado_n)~ "Mantiene grado",
+                                          T~"Otros"))%>% 
+  dplyr::mutate(diff_bet_proc= dplyr::case_when(
+                    grepl("Baja",evento)~  lead(fech_ter_num)-fech_ter_num,
+                    grepl("Profesionaliza",evento)~  lead(fech_ter_num)-fech_ter_num,
+                    T~ as.numeric(as.Date(substr(Sys.time(),1,10)))-fech_ter_num))%>% 
+  dplyr::ungroup() %>% 
+  # se lleva a numeros el evento
+  dplyr::mutate(event_n=dplyr::case_when(evento=="Baja grado, mantiene estamento"~1,
+                                         evento=="Profesionaliza"~2,T~0)) %>% 
+  #para controlar la cantidad de categorías por fecha disponibles
+    dplyr::mutate(fech_ter_cut=factor(cut(fech_ter_num/100, 6))) %>%
+    dplyr::mutate(fech_ter_cut2=factor(cut(fech_ter_num/100, 3))) %>%
+    #se generan etiquetas para los niveles de la variable de fecha agrupada
+    dplyr::group_by(fech_ter_cut) %>% 
+    dplyr::mutate(fech_ter_cut_lab=as.character(first(fech_ter))) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::group_by(fech_ter_cut2) %>% 
+    dplyr::mutate(fech_ter_cut_lab2=as.character(first(fech_ter))) %>% 
+    dplyr::ungroup()
+
+#les cambiamos la etiquetas
+part_17<-dplyr::mutate(part_17,fech_ter_cut=factor(fech_ter_cut, 
+          levels = unique(part_17$fech_ter_cut),
+          labels= sort(as.Date(unique(part_17$fech_ter_cut_lab)))
+                                                     ))
+
+part_17<-dplyr::mutate(part_17,fech_ter_cut2=factor(fech_ter_cut2, 
+          levels = unique(part_17$fech_ter_cut2),
+          labels= sort(as.Date(unique(part_17$fech_ter_cut_lab2)))
+                                                     ))
+
+#sort(as.Date(levels(part_17$fech_ter_cut)))
+#sort(as.Date(levels(part_17$fech_ter_cut_lab)))
+
+#8fd115de1681b47cc8b6407b9ce69825ff2a7f6f9991cd43ad0705b13253a455
+```
+
+<br>
+
+Se muestran los porcentajes de hombres y mujeres
+
+<br>
+
+```{r 18-desc4, echo=T, paged.print=TRUE,eval=T}
+part_17 %>% janitor::tabyl(event_n,sex)%>%
+    janitor::adorn_percentages("col") %>%
+    janitor::adorn_pct_formatting(digits = 2) %>%
+    janitor::adorn_ns() %>% 
+    dplyr::mutate(event_n=dplyr::case_when(event_n==0~"Otros o ningún evento",
+                                           event_n==1~"Baja grado, mantiene estamento",
+                                           event_n==2~"Profesionaliza")) %>% 
+    knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","),
+               caption = paste0("Tabla."),
+               col.names=c("Evento","Hombres","Mujeres","Sexo No disponible"),
+               align =c('l',rep('c', 101)))%>%
+    kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
+  kableExtra::add_footnote(c("Nota. porcentaje y recuento entre paréntesis"),
+                            notation = "none")%>%
+  kableExtra::kable_classic()%>%
+    kableExtra::scroll_box(width = "100%", height = "375px")
+```
+
+<br>
+
+Por lo visto en la tabla, si bien mujeres bajan en mayor proporción de grado (aumentan ingresos), hombres se adjudican procesos de selección que los profesionalizan en mayor proporción.
+
+<br>
+
+Luego, se grafica la distribución de fechas en que se cerraron los procesos de selección.
+
+<br>
+
+```{r 18-desc5, echo=T, paged.print=TRUE,eval=T, fig.cap="Histograma de fechas de término", fig.align="center"}
+fechas_termino_procesos<-
+part_17 %>% dplyr::summarise(min = as.character(min(fech_ter, na.rm=T)),
+         p025=as.character(as.Date(quantile(unclass(fech_ter), .025, na.rm=T), origin = "1970-01-01")),
+         p25=as.character(as.Date(quantile(unclass(fech_ter), .25, na.rm=T), origin = "1970-01-01")),
+         p50=as.character(as.Date(quantile(unclass(fech_ter), .5, na.rm=T), origin = "1970-01-01")),
+         p75=as.character(as.Date(quantile(unclass(fech_ter), .75, na.rm=T), origin = "1970-01-01")),
+         p975=as.character(as.Date(quantile(unclass(fech_ter), .975, na.rm=T), origin = "1970-01-01")),
+         max = as.character(max(fech_ter, na.rm=T))) %>% 
+  data.table::data.table() 
+
+part_17 %>%
+  dplyr::mutate(fech_ter_num=unclass(fech_ter)) %>% 
+  ggplot(aes(fech_ter))+
+  geom_histogram()+
+  scale_x_date(breaks = "6 months", labels=scales::date_format("%Y\n%b"))+
+  labs(y="Recuento", x="Fecha de término", caption= paste0("Nota. Min: ",fechas_termino_procesos[1],"; Percentil 2,5: ",fechas_termino_procesos[1,2], ": Percentil 25: ",fechas_termino_procesos[1,3], ";\nMediana: ", fechas_termino_procesos[1,4], "; Percentil 75: ",fechas_termino_procesos[1,5], " Percentil 97.5: ", fechas_termino_procesos[1,6], "; Max: ",fechas_termino_procesos[1,7]))+
+  sjPlot::theme_sjplot2()
+```
+
+<br>
+
+```{r 18-desc6, echo=T, paged.print=TRUE,eval=T, fig.cap="Eventos por sexo y periodo", fig.align="center"}
+sum_fech_ter_sex_event<-
+part_17 %>% 
+  dplyr::group_by(fech_ter_cut, sex, event_n)%>% 
+  dplyr::summarise(n=n()) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::group_by(fech_ter_cut) %>% 
+  dplyr::mutate(tot_by_fech=sum(n,na.rm=T)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::group_by(fech_ter_cut,sex) %>% 
+  dplyr::mutate(tot_by_fech_sex=sum(n,na.rm=T)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(perc_sex=n/tot_by_fech_sex) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::group_by(fech_ter_cut,event_n) %>% 
+  dplyr::mutate(tot_by_fech_event=sum(n,na.rm=T)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(perc_event=n/tot_by_fech_event)
+# 
+#  sum_fech_ter_sex_event %>%
+#    dplyr::filter(!is.na(sex)) %>% 
+#      ggplot(aes(x= fech_ter_cut, y=perc_sex, fill=factor(event_n))) +
+#      geom_col()+
+#      facet_wrap(~factor(sex))+
+#    sjPlot::theme_sjplot2()
+
+
+sum_fech_ter_sex_event %>%
+  dplyr::filter(!is.na(sex)) %>% 
+  dplyr::filter(event_n!=0) %>% 
+  #dplyr::mutate(fech_ter_cut=factor(fech_ter_cut, levels = ,labels= unique(part_17$fech_ter_cut_lab))) %>% 
+    ggplot(aes(x= factor(fech_ter_cut, levels=as.character(sort(as.Date(unique(part_17$fech_ter_cut_lab))))), y=perc_event, fill=factor(sex))) +
+    geom_col()+
+    facet_wrap(factor(event_n)~.,nrow=2, labeller=  as_labeller(c(`1` = "Bajan grado (aumentan sueldo)",`2` = "Profesionalización")))+ #`0` = "Otros o ningún evento", 
+  sjPlot::theme_sjplot2()+
+  scale_fill_manual(name="Sexo",values=c("gray70","gray30"), labels=c("Hombre", "Mujer"))+
+  labs(y="Porcentaje de eventos",x="Fecha agrupada (Primera fecha término del grupo)")+
+  scale_x_discrete(guide=guide_axis(n.dodge=2))+ 
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+
+```
+
+<br>
+
+Un análisis de los procentajes permite ver que la distribución de usuarios profesionalizados y que aumentan grado tiende a ser tiende a ser bastante similar entre los distintos sexos.
+  
+<br>
+
+Se genera una tabla descriptiva por sexo y por resultar seleccionado nuevamente o no.
+
+
+```{r 19a, echo=T, paged.print=TRUE,eval=T}
+#knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+
+attr(part_17$sex,"label")<-"Sexo (obtenido a partir del nombre)"
+attr(part_17$est,"label")<-"Estamento"
+attr(part_17$grado_n,"label")<-"Grado (en números)"
+attr(part_17$n_proc,"label")<-"Número de procesos que se ha adjudicado (incluye los que mantiene grado)"
+attr(part_17$vesp,"label")<-"Jornada Vespertina (1= Vespertina)"
+attr(part_17$fech_ter_num,"label")<-"Fecha (en números, días desde 01 de Enero de 1970)"
+
+
+table1_all <- suppressWarnings(compareGroups::compareGroups(sex ~ est+ grado_n+ fech_ter_num+ n_proc+ vesp, method= c(
+                                            grado_n=2,
+                                            est=3,
+                                            fech_ter_num=2,
+                                            n_proc=3,
+                                            vesp=3),
+                       data = part_17,
+                       include.miss = T,
+                       var.equal=T)
+)
+restab1_all <- createTable(table1_all, show.p.overall = T)
+  
+compareGroups::export2md(restab1_all, size=11, first.strip=T, hide.no="no", position="center",
+           format="html",caption= "Descriptivos de resumen por sexo",
+          col.names=c("Variables","Hombres", "Mujeres", "Sig."))%>%
+  kableExtra::add_footnote(c("Nota. Variables continuas se presentan en medianas y percentiles 25 y 75 en corchetes;", "Variables categóricas se presentan en recuentos (%)", "La fecha en formato numérico se obtuvo como los días desde el origen de 1970-01-01"), notation = "none")%>%
+  kableExtra::scroll_box(width = "100%", height = "375px") %>% 
+   kableExtra::kable_classic()
+```
+
+<br>
+
+Llama la atención que un menor porcentaje de mujeres ingresó a puestos en el estamento auxiliar (posiblemente con menores remuneraciones), y menor porcentaje de mujeres en puestos del estamento técnico.
+
+<br>
+
+```{r 19b, echo=T, paged.print=TRUE,eval=T}
+table2_comp <- suppressWarnings(compareGroups(event_dic~est+ grado_n+ fech_ter_num+ n_proc+ vesp, method= c(
+                                            grado_n=2,
+                                            est=3,
+                                            fech_ter_num=2,
+                                            n_proc=3,
+                                            sex=3,
+                                            vesp=3),
+                       data = part_17 %>% dplyr::mutate(event_dic=ifelse(event_n>0,1,0)),
+                       include.miss = T,
+                       var.equal=T)
+)
+restab2 <- createTable(table2_comp, show.p.overall = T)
+  
+export2md(restab2, size=11, first.strip=T, hide.no="no", position="center",
+           format="html",caption= "Descriptivos de resumen por Estatus de Adjudicación Posterior Proceso de Selección",
+          col.names=c("Variables","Otros", "Mejora grado (más bajo)/Profesionalización", "Sig."))%>%
+  kableExtra::add_footnote(c("Nota. Variables continuas se presentan en medianas y percentiles 25 y 75 en corchetes;", "Variables categóricas se presentan en recuentos (%)", "La fecha en formato numérico se obtuvo como los días desde el origen de 1970-01-01"), notation = "none")%>%
+  kableExtra::scroll_box(width = "100%", height = "375px") %>% 
+   kableExtra::kable_classic()
+```
+
+<br>
+
+A nivel descriptivo, es razonable pensar que menos personas que se encuentran en el estamento profesional acceden a un proceso de selección posteriormente dado que la oferta de puestos de mayor remuneración es más restringida, o en definitva aquellas personas que pueden participar de ellas son principalmente personal externo (cuya condición lógica tiende a ser no haber ganado un proceso antes a menos que haya renunciado previamente). También es más o menos obvio que los procesos en que personas participaron de manera muy reciente tienen menos posibilidades de participar nuevamente y adjudicarse un adicional. En parte, dado que por normativa se requiere al menos dos años en la función para postular. Tampoco tienen esta oportunidad en la misma proporción las personas que ingresaron en estamento auxiliar.
+
+<br>
+
+## Paso 3. Análisis de supervivencia
+
+
+<br>
+
+```{r 20, echo=T, paged.print=TRUE,eval=T}
+#event_n diff_bet_proc
+biostat3::survRate(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17)
+
+sex_irr <-irrs(x="sex", z="diff_bet_proc", y="event_n>0", db="part_17")
+#General population=1     Women specific=2 
+```
+
+<br>
+
+La razón de tasas de densidad de incidencia de aumentar grado o profesionalizarse en mujeres es `r scales::percent(round(as.numeric(sex_irr$estimate[1]),2)-1)` veces mayor que hombres (95% IC `r round(sex_irr$conf.int[1],2)`-`r round(sex_irr$conf.int[2],2)`; p`r ifelse(sprintf("%1.3f",sex_irr$p.value)=="0.000","<0.001",paste0("= ", sprintf("%1.3f",sex_irr$p.value)))`), aunque con un alto grado de variabilidad.
+
+<br>
+
+```{r 20-survplot-sex-rec, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Hazards Acumulados de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
+fit_sex_rec <- survfit(Surv(diff_bet_proc, event_n>0) ~ factor(sex), data=part_17) 
+
+#http://rstudio-pubs-static.s3.amazonaws.com/522481_5e55bec9c94044678e680a6d07e96a2e.html
+#https://rstudio-pubs-static.s3.amazonaws.com/258589_cd197f86fb5548ac89d7bcffd4bc6afe.html
+#http://pcool.dyndns.org:8080/statsbook/?page_id=513
+#http://rstudio-pubs-static.s3.amazonaws.com/316989_83cbe556125645b698c9ff6cf88c4c1a.html
+#https://cran.r-project.org/web/packages/survminer/readme/README.html
+#https://docs.ufpr.br/~jlpadilha/CE077/Aulas/2.TecnicasNaoParametricas.pdf 
+#http://www.columbia.edu/~sjm2186/EPIC_R/packages.pdf
+
+surv_data_sex <- broom::tidy(fit_sex_rec)
+
+fortify(surv_data_sex, fun = "cumhaz") %>% 
+  data.frame() %>% 
+ggplot(aes(x = time, y = 1-estimate, color = strata, fill = strata, group = strata)) +
+  geom_step() + 
+  geom_ribbon(aes(ymin = 1-conf.low, 
+                  ymax = 1-conf.high), alpha = 0.2) +  # Confidence bands
+  scale_color_manual(values = c("skyblue4", "gray50"), labels = c("Hombre", "Mujer")) +
+  scale_fill_manual(values = c("skyblue4", "gray50"), labels = c("Hombre", "Mujer")) + 	
+  theme_classic() +
+  labs(x = "Tiempo (días)", y = "Riesgo acumulado", color = "Sexo") 
+
+invisible("Prueba de riesgos proporcionales:")
+prop_haz<-cox.zph(coxph(Surv(diff_bet_proc, event_n>0)~factor(sex) +cluster(id_seleccionado),
+              data=part_17))
+```
+
+<br>
+
+Atendiendo a que los *hazards* entre hombres y mujeres se distribuyen de manera proporcional (Residuos Schoefeld: $X^2$ (`r sprintf("%1.2f", data.frame(prop_haz$table)[1,2])`)= `r sprintf("%1.2f", data.frame(prop_haz$table)[1,1])`  , p=`r round(data.frame(prop_haz$table)[1,3],4)`), se decidió hacer un análisis de supervivencia de Cox, aunque con una varianza robusta, reconociendo una interdependencia por sujetos que podrían presentar más de una admisión.
+
+<br>
+
+```{r 21a, echo=T, paged.print=TRUE,eval=T}
+res_cox<-
+  broom::tidy(
+coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ cluster(id_seleccionado),
+                  data=part_17,method = "breslow"), exponentiate=T, conf.int=T) 
+```
+
+<br>
+
+De los resultados del análisis de supervivencia de cox se desprende que las mujeres tendrían `r sprintf("%1.2f",res_cox$estimate)` mayores oportunidades de experimentar un aumento de grado o profesionalización que hombres (95% IC `r sprintf("%1.2f",res_cox$conf.low)`, `r sprintf("%1.2f",res_cox$conf.high)`).
+
+<br>
+
+```{r 21b, echo=T, paged.print=TRUE,eval=T}
+alt1<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_cut2 +cluster(id_seleccionado),
+                  data=part_17,method = "breslow")
+
+alt2<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_num^2+cluster(id_seleccionado),
+                  data=part_17,method = "breslow")
+
+alt3<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_num^3+cluster(id_seleccionado),
+                  data=part_17,method = "breslow")
+
+alt4<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_num+cluster(id_seleccionado),
+                  data=part_17,method = "breslow")
+
+alt5<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ log(fech_ter_num)+cluster(id_seleccionado),
+                  data=part_17,method = "breslow")
+
+res_cox2<-
+  rbind.data.frame(cbind.data.frame(broom::tidy(
+alt1, exponentiate=T, conf.int=T, digits=2), AIC=sprintf("%1.1f", extractAIC(alt1)[[2]])),
+cbind.data.frame(broom::tidy(
+alt2, exponentiate=T, conf.int=T, digits=2), AIC=sprintf("%1.1f", extractAIC(alt2)[[2]])),
+cbind.data.frame(broom::tidy(
+alt3, exponentiate=T, conf.int=T, digits=2), AIC=sprintf("%1.1f", extractAIC(alt3)[[2]])),
+cbind.data.frame(broom::tidy(
+alt4, exponentiate=T, conf.int=T, digits=2), AIC=sprintf("%1.1f", extractAIC(alt4)[[2]])),
+cbind.data.frame(broom::tidy(
+alt5, exponentiate=T, conf.int=T, digits=2), AIC=sprintf("%1.1f", extractAIC(alt5)[[2]]))
+)
+
+res_cox2 %>% 
+  dplyr::select(-std.error,-robust.se, -statistic) %>% 
+      knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","), digits=2,
+               caption = paste0("Modelos alternativos (incluyen fecha de término proceso)"),
+               col.names=c("Parámetro","RR","valor p","CI bajo","CI alto", "AIC"),
+               align =c('l',rep('c', 101)))%>%
+    kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
+  kableExtra::add_footnote(c("Nota. porcentaje y recuento entre paréntesis"),
+                            notation = "none")%>%
+  kableExtra::kable_classic()%>%
+  kableExtra::group_rows("Como categórica",1,3) %>% 
+  kableExtra::group_rows("Cuadrática",4,5) %>% 
+  kableExtra::group_rows("Cúbica",6,7) %>% 
+  kableExtra::group_rows("Lineal",8,9) %>% 
+  kableExtra::group_rows("Logarítmica",10,11) %>% 
+  kableExtra::scroll_box(width = "100%", height = "375px") 
+```
+
+La asociación también se conservaría 
+
+#### Paso 3.2. Restringir a 1 evento por usuario.
+
+En este caso, pasamos de `r nrow(part_17)` a `r nrow(dplyr::group_by(part_17,id_seleccionado)%>% dplyr::mutate(rn=row_number())%>% dplyr::filter(rn<2))`. Por tanto, aquí no consideramos los hazards de un 3er o posterior proceso de selección. Lo anterior, para chequear si la exposición previa podría afectar los resultados de la siguiente.  
+
+<br>
+
+```{r 20b, echo=T, paged.print=TRUE,eval=T}
+#creamos la base de datos filtrada.
+part_17_first_ev<-
+part_17 %>% 
+    dplyr::group_by(id_seleccionado) %>% 
+    dplyr::mutate(rn=row_number()) %>% 
+    dplyr::filter(rn<2) %>% ungroup()
+
+
+#event_n diff_bet_proc
+biostat3::survRate(Surv((diff_bet_proc), event_n>0) ~ factor(sex), data=part_17_first_ev)
+
+sex_irr2 <-irrs(x="sex", z="diff_bet_proc", y="event_n>0", db="part_17_first_ev")
+#General population=1     Women specific=2 
+```
+
+<br>
+
+La razón de tasas de densidad de incidencia de aumentar grado o profesionalizarse en mujeres es `r sprintf("%1.2f",as.numeric(sex_irr2$estimate[1]))` veces mayor que hombres (95% IC `r sprintf("%1.2f",sex_irr2$conf.int[1])`-`r sprintf("%1.2f",sex_irr2$conf.int[2])`; p`r ifelse(sprintf("%1.3f",sex_irr2$p.value)=="0.000","<0.001",paste0("= ", sprintf("%1.3f",sex_irr2$p.value)))`).
+
+<br>
+
+```{r 20-survplot-sex-rec-b, dpi = 96, warning=F,message=F,fig.align='center', fig.cap="Hazards Acumulados de Experimentar aumento de grado o readmisión, por Sexo", error=T,fig.width=8}
+fit_sex_rec2 <- survfit(Surv(diff_bet_proc, event_n>0) ~ factor(sex), data=part_17_first_ev) 
+
+surv_data_sex2 <- broom::tidy(fit_sex_rec2)	
+
+fortify(surv_data_sex2, fun = "cumhaz") %>% 
+  data.frame() %>% 
+ggplot(aes(x = time, y = 1-estimate, color = strata, fill = strata, group = strata)) +
+  geom_step() + 
+  geom_ribbon(aes(ymin = 1-conf.low, 
+                  ymax = 1-conf.high), alpha = 0.2) +  # Confidence bands
+  scale_color_manual(values = c("skyblue4", "gray50"), labels = c("Hombre", "Mujer")) +
+  scale_fill_manual(values = c("skyblue4", "gray50"), labels = c("Hombre", "Mujer")) + 	
+  theme_classic() +
+  labs(x = "Tiempo (días)", y = "Riesgo acumulado", color = "Sexo") 
+
+	
+invisible("Prueba de riesgos proporcionales:")
+prop_haz2<-cox.zph(coxph(Surv(diff_bet_proc, event_n>0)~factor(sex) ,
+              data=part_17_first_ev))
+```
+
+<br>
+
+Atendiendo a que los hazards entre hombres y mujeres se distribuyen de manera proporcional (Residuos Schoefeld: $X^2$ (`r  sprintf("%1.2f",data.frame(prop_haz2$table)[1,2])`)= `r sprintf("%1.2f",data.frame(prop_haz2$table)[1,1])`  , p=`r round(data.frame(prop_haz2$table)[1,3],4)`), se decidió hacer un análisis de supervivencia de cox.
+
+<br>
+
+```{r 212a, echo=T, paged.print=TRUE,eval=T}
+res_coxb<-
+  broom::tidy(
+coxph(Surv(diff_bet_proc, event_n>0)~factor(sex),
+                  data=part_17_first_ev,method = "breslow"), exponentiate=T, conf.int=T) 
+```
+
+<br>
+
+De los resultados del análisis de supervivencia de cox se desprende que las mujeres tendrían `r sprintf("%1.2f",res_coxb$estimate)` mayores hazards de experimentar un aumento de grado o profesionalización que hombres (95% IC `r sprintf("%1.2f",res_coxb$conf.low)`, `r sprintf("%1.2f",res_coxb$conf.high)`).
+
+<br>
+
+```{r 212b, echo=T, paged.print=TRUE,eval=T}
+alt1b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_cut2,
+                  data=part_17_first_ev,method = "breslow")
+
+alt2b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_num^2,
+                  data=part_17_first_ev,method = "breslow")
+
+alt3b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_num^3,
+                  data=part_17_first_ev,method = "breslow")
+
+alt4b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ fech_ter_num,
+                  data=part_17_first_ev,method = "breslow")
+
+alt5b<-coxph(Surv(diff_bet_proc, event_n>0)~factor(sex)+ log(fech_ter_num),
+                  data=part_17_first_ev,method = "breslow")
+
+anova(alt5b, alt4b, alt3b, alt2b, alt1b)
+
+res_cox2b<-
+  rbind(broom::tidy(
+alt1b, exponentiate=T, conf.int=T, digits=2),
+broom::tidy(
+alt2b, exponentiate=T, conf.int=T, digits=2),
+broom::tidy(
+alt3b, exponentiate=T, conf.int=T, digits=2),
+broom::tidy(
+alt4b, exponentiate=T, conf.int=T, digits=2),
+broom::tidy(
+alt5b, exponentiate=T, conf.int=T, digits=2))
+
+#extractAIC(fit)
+res_cox2b %>% 
+  dplyr::select(-std.error,-statistic) %>% 
+      knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","), digits=2,
+               caption = paste0("Modelos alternativos (incluyen fecha de término proceso)"),
+               col.names=c("Parámetro","RR","valor p","CI bajo","CI alto"),
+               align =c('l',rep('c', 101)))%>%
+    kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 12) %>%
+  kableExtra::add_footnote(c("Nota. porcentaje y recuento entre paréntesis"),
+                            notation = "none")%>%
+  kableExtra::kable_classic()%>%
+  kableExtra::group_rows("Como categórica",1,3) %>% 
+  kableExtra::group_rows("Cuadrática",4,5) %>% 
+  kableExtra::group_rows("Cúbica",6,7) %>% 
+  kableExtra::group_rows("Lineal",8,9) %>% 
+  kableExtra::group_rows("Logarítmica",10,11) %>% 
+  kableExtra::scroll_box(width = "100%", height = "375px") 
+```
+
+Se observa que la asociación se mantiene en todas sus formas. Adicionalmente, la fecha de la primera selección no tiene un efecto en la segunda.
+
+<br>
+
+## Paso 4. Generar un modelo paramétrico Bayesiano.
+
+```{r 33, echo=T, paged.print=TRUE,eval=T}
+# #https://www2.stat.duke.edu/courses/Fall21/sta440.001/slides/survival-4.html#13
+# https://sourceforge.net/p/mcmc-jags/discussion/610037/thread/5c69d0abae/
+# https://www.mas.ncl.ac.uk/~nmf16/teaching/mas8391/survival.pdf
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3998726/
+# https://redivia.gva.es/bitstream/handle/20.500.11939/7400/2021_Alvares_Bayesian_Post-Print.pdf?sequence=2&isAllowed=y
+if(.Platform$OS.type == "windows"){
+  Sys.setenv(JAGS_HOME="C:/Program Files/JAGS/JAGS-4.3.0");Sys.setenv(JAGS_ROOT="C:/Program Files/JAGS/JAGS-4.3.0")
+}
+# devtools::install_github('kenkellner/jagsUI')
+
+# If you are using R 4.2.0 or later then install JAGS-4.3.2.exe
+# If you are using R 4.1.3 or earlier then install JAGS-4.3.0.exe
+# 
+# If you are still using R 4.1.3 or earlier then you should strongly
+# consider upgrading your R installation.
+# Source: README, updated 2023-03-06
+library(rjags)
+
+
+part_17_first_ev_naomit<-
+  na.omit(part_17_first_ev[,c("diff_bet_proc",
+                              "event_n",
+                              "sex",
+                              "fech_ter_num")])
+part_17_first_ev_naomit$event_n2 <- 
+  as.numeric(part_17_first_ev_naomit$event_n > 0)
+part_17_first_ev_naomit$sex_num <- 
+  ifelse(part_17_first_ev_naomit$sex=="m",1,0)
+
+part_17_first_ev_naomit$right <- ifelse(part_17_first_ev_naomit$event_n == 0,  # Censored
+      unclass(as.Date(Sys.time())), # Replace with the correct calculation
+      part_17_first_ev_naomit$diff_bet_proc)    # Uncensored cases
+
+data_list <- list(
+    t = part_17_first_ev_naomit$diff_bet_proc,
+    cens = part_17_first_ev_naomit$event_n2,
+    right = part_17_first_ev_naomit$right,
+    sex = part_17_first_ev_naomit$sex_num,
+    fech_ter_num = part_17_first_ev_naomit$fech_ter_num,
+    N = nrow(part_17_first_ev_naomit)  # Number of observations
+)
+#Your current model uses dnorm(0, 0.001) for the beta coefficients, which implies a very high variance. In JAGS, the second parameter is the precision (the reciprocal of variance), so 0.001 corresponds to a variance of 1000 (since variance = 1/precision).
+model_string <- "
+model {
+  for (i in 1:N) {
+    cens[i] ~ dinterval(t[i], right[i]) # Censoring information
+    hazard[i] <- exp(beta0 + beta1 * sex[i] + beta2 * fech_ter_num[i]) 
+    t[i] ~ dweib(r, mu[i])                
+    log(mu[i]) <- -hazard[i]
+  }
+
+  # Non-informative priors
+  beta0 ~ dnorm(0, 0.1)  
+  beta1 ~ dnorm(0, 0.1)
+  beta2 ~ dnorm(0, 0.1)
+
+  # Weibull shape parameter
+  r ~ dgamma(0.01, 0.01)
+}
+"
+
+n_chains <- 9
+jags_model <- jags.model(textConnection(model_string), 
+                         data = data_list, 
+                         n.chains = n_chains, 
+                         n.adapt = 1000)
+#The n.chains argument indicates the number of Markov chains selected. Secondly, a burn-in period is considered (here the first 1000 simulations) using the update function
+update(jags_model, n.iter = 5000) # Number of burn-in iterations
+#the model is run using coda.samples function for a specific number of iterations to monitor (here n.iter=50000) as well as a specific thinning value (here thin=10) in order to reduce autocorrelation in the saved samples
+coda_samples <- coda.samples(jags_model, 
+                             variable.names = c("beta0", "beta1", "beta2"), 
+                             n.iter = 50000, thin = 10)
+```
+
+
+```{r 33-output, echo=T, paged.print=TRUE,eval=T}
+print(summary(coda_samples))
+
+samples_df <- do.call(rbind, lapply(1:length(coda_samples), function(i) {
+  as.data.frame(as.mcmc(coda_samples[[i]]))
+}))
+
+samples_df2 <- samples_df %>%
+  mutate(
+    hr_beta0 = exp(beta0),
+    hr_beta1 = exp(beta1),
+    hr_beta2 = exp(beta2)
+  )
+
+# Summarize hazard ratios to get mean, sd, and quantiles
+hr_summary <- samples_df2 %>%
+  summarise(
+    mean_beta0 = mean(hr_beta0),
+    lower_beta0 = quantile(hr_beta0, 0.025),
+    upper_beta0 = quantile(hr_beta0, 0.975),
+    mean_beta1 = mean(hr_beta1),
+    lower_beta1 = quantile(hr_beta1, 0.025),
+    upper_beta1 = quantile(hr_beta1, 0.975),
+    mean_beta2 = mean(hr_beta2),
+    lower_beta2 = quantile(hr_beta2, 0.025),
+    upper_beta2 = quantile(hr_beta2, 0.975)
+  )
+# Create a tidy dataframe for easy reading and interpretation
+tidy_hr <- tibble(
+  term = c("Intercept", "Sexo(Mujer)", "Fecha de término"),
+  estimate = c(hr_summary$mean_beta0, hr_summary$mean_beta1, hr_summary$mean_beta2),
+  conf.low = c(hr_summary$lower_beta0, hr_summary$lower_beta1, hr_summary$lower_beta2),
+  conf.high = c(hr_summary$upper_beta0, hr_summary$upper_beta1, hr_summary$upper_beta2)
+)
+tidy_hr
+#   term             estimate conf.low conf.high
+#   <chr>               <dbl>    <dbl>     <dbl>
+# 1 Intercept         116.     107.      126.   
+# 2 Sexo(Mujer)         0.986    0.979     0.992
+# 3 Fecha de término    1.00     1.00      1.00 
+
+par(mfrow=c(2,2))
+par(mar = c(5, 4, 4, 5))
+traceplot(coda_samples)
+
+recorded_plot <- recordPlot() 
+
+png(paste0("_figs/traceplot.png"), height=5, width=8, res=500, units="in") 
+recorded_plot
+dev.off()
+
+try(dev.off())
+par(mfrow=c(2,2))
+par(mar = c(5, 4, 4, 5))
+densplot(coda_samples, main="Density Plot")
+recorded_plot <- recordPlot() 
+png(paste0("_figs/densplot.png"), height=5, width=8, res=500, units="in") 
+recorded_plot
+dev.off()
+
+gelman.diag(coda_samples)
+# Potential scale reduction factors:
+# 
+#       Point est. Upper C.I.
+# beta0       1.07       1.16
+# beta1       1.00       1.00
+# beta2       1.04       1.09
+# 
+# Multivariate psrf
+# 
+# 1.07
+```
+
+<!---
+https://genderdata.worldbank.org/en/home#
+https://www.oecd.org/gender/Pay-Transparency-2021-Policy-Brief.pdf
+https://www.oecd.org/gender/Gender-pay-gap-reporting-and-equal-pay-audits-Policy-Brief.pdf
+https://www.deloitte.com/global/en/services/legal/blogs/wage-transparency-for-gender-equality.html
+https://www.ilo.org/resource/news/pay-transparency-can-address-gender-pay-gap
+--->
+
+<br>
+
+# Session Info
+
+```{r session-info, echo=T, paged.print=TRUE}
+Sys.getenv("R_LIBS_USER")
+sessionInfo()
+warning(getwd())
+save.image("__analisis.RData")
+
+unlink("*_cache", recursive = T, force = T, expand = TRUE)
+
+
+sesion_info <- devtools::session_info()
+dplyr::select(
+  tibble::as_tibble(sesion_info$packages),
+  c(package, loadedversion, source)
+) %>% 
+  DT::datatable(filter = 'top', colnames = c('Row number' =1,'Variable' = 2, 'Percentage'= 3),
+              caption = htmltools::tags$caption(
+        style = 'caption-side: top; text-align: left;',
+        '', htmltools::em('Packages')),
+      options=list(
+initComplete = htmlwidgets::JS(
+        "function(settings, json) {",
+        "$(this.api().tables().body()).css({
+            'font-family': 'Helvetica Neue',
+            'font-size': '50%', 
+            'code-inline-font-size': '15%', 
+            'white-space': 'nowrap',
+            'line-height': '0.75em',
+            'min-height': '0.5em'
+            });",#;
+        "}")))
+```
