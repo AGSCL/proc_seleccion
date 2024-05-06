@@ -29,10 +29,13 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v1
 
+      - name: Install Chocolatey
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+          
       - name: Install JAGS
         run: |
-          curl -L "https://github.com/mcmc-jags/jags/releases/download/v4.3.0/JAGS-4.3.0.exe" -o JAGS-4.3.0.exe
-          Start-Process -FilePath "JAGS-4.3.0.exe" -ArgumentList "/S" -Wait
+          choco install jags --version 4.3.0 -y
 
       - name: Cache Renv packages
         uses: actions/cache@v2
