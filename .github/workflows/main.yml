@@ -46,7 +46,7 @@ jobs:
       - name: Recover renv
         uses: r-lib/actions/setup-renv@v2          
 
-      - name: Cache Renv packages
+      - name: Cache Renv packages 
         uses: actions/cache@v2
         with:
           path: |
