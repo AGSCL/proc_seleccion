@@ -32,7 +32,7 @@ jobs:
       - name: Download JAGS installer #https://stackoverflow.com/questions/77948727/curl-under-windows-server-2022-uses-unix-certificate-store-when-called-in-github 
         shell: cmd
         run: |
-          curl -o wjags.exe -L "https://downloads.sourceforge.net/project/mcmc-jags/JAGS/4.x/Windows/JAGS-4.3.1.exe?ts=gAAAAABmZ7BXYYwMWdJoRYIapUVA0eGIIm_q3zB-vwy5TtHoju1rboIfb8zNaQWsSCqODE8z7PJipbfDFp52EqMpi0lBfHIGbg%3D%3D&r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fmcmc-jags%2Ffiles%2FJAGS%2F4.x%2FWindows%2FJAGS-4.3.1.exe%2Fdownload"
+          curl -o wjags.exe -L "https://deac-fra.dl.sourceforge.net/project/mcmc-jags/JAGS/4.x/Windows/JAGS-4.3.0.exe"
       
       - name: Install JAGS #https://github.com/iamazeem/test/blob/main/.github/workflows/ci-win-curl-jags.yml
         shell: cmd
@@ -67,6 +67,6 @@ jobs:
           git config --local user.name "${{ github.actor }}"
           git add .
           git commit -m "Update renv.lock and rendered content [skip ci]" --allow-empty
-          git push
+          git push -f
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
