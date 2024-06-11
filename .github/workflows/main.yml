@@ -32,7 +32,7 @@ jobs:
       - name: Download JAGS installer #https://stackoverflow.com/questions/77948727/curl-under-windows-server-2022-uses-unix-certificate-store-when-called-in-github 
         shell: cmd
         run: |
-          curl -o wjags.exe -L "https://drive.google.com/uc?export=download&id=1Wj0pCqlHz5P6U-p_VZVVmM-Wj5sMy-YZ"
+          curl -o wjags.exe -L "https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/JAGS-4.3.0.exe"
       
       - name: Install JAGS #https://github.com/iamazeem/test/blob/main/.github/workflows/ci-win-curl-jags.yml
         shell: cmd
