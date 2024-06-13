@@ -1086,7 +1086,7 @@ names(part_6)[grepl("proceso de",names(part_6))]<- "proc_sel"
 
 part_7 <-
   part_6 %>% 
-  dplyr::mutate(proc_sel=gsub("interno\\,", "interno", "proceso de seleccion")) %>%
+  dplyr::mutate(proc_sel=gsub("interno\\,", "interno", proc_sel)) %>%
   #distinct(`proceso de seleccion`) %>% 
   dplyr::mutate(estado=dplyr::case_when(proc_sel=="desierto"~"desierto",T~estado)) %>% 
   dplyr::mutate(proc_sel=dplyr::case_when(proc_sel=="desierto"~NA_character_,T~proc_sel)) %>% 
@@ -1097,7 +1097,7 @@ part_7 <-
   dplyr::mutate(estado=gsub("finalizada","finalizado", estado)) %>%
   #dplyr::filter(estado=="claudia pizarro vera"|estado=="luciano leyton silva")
   dplyr::mutate(estado=stringr::str_trim(estado)) %>%
-  dplyr::mutate(proc_sel=dplyr::case_when(proc_sel=="desierto" & id_proc=="[a723 - a724 - a725 - a726] bibliotecario(a)"~"Interno",T~"proc_sel"))%>% 
+  dplyr::mutate(proc_sel=dplyr::case_when(proc_sel=="desierto" & id_proc=="[a723 - a724 - a725 - a726] bibliotecario(a)"~"Interno",T~proc_sel))%>% 
   dplyr::mutate(sel1=dplyr::case_when(estado=="claudia pizarro vera"~"claudia pizarro vera",T~sel1)) %>% 
   dplyr::mutate(sel1=dplyr::case_when(estado=="luciano leyton silva"~"luciano leyton silva",T~sel1)) %>% 
   dplyr::mutate(sel1=dplyr::case_when(estado=="ana maria leiva orellana"~"ana maria leiva",T~sel1)) %>% 
@@ -2220,13 +2220,13 @@ aRMST3$rmst_diff %>%  mutate(Adjusted_diff = paste0(sprintf("%1.2f",Est.), " (",
 aRMST5$rmst_diff %>%  mutate(Adjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",CIL), ", ", sprintf("%1.2f",CIU), "), p = ", p))%>% dplyr::select(Adjusted_diff),"",
 aRMST9$rmst_diff %>%  mutate(Adjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",CIL), ", ", sprintf("%1.2f",CIU), "), p = ", p)) %>% dplyr::select(Adjusted_diff)),
 rbind.data.frame("",
-                 rmst3$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_ratio) %>% slice(1), "",
-                 rmst5$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_ratio)%>% slice(1), "",
-                 rmst9$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_ratio)%>% slice(1)),
+                 rmst3$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_ratio) %>% slice(2), "",
+                 rmst5$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_ratio)%>% slice(2), "",
+                 rmst9$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_ratio)%>% slice(2)),
 rbind.data.frame("",
-                 rmst3$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_diff) %>% slice(2), "",
-                 rmst5$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_diff)%>% slice(2), "",
-                 rmst9$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_diff)%>% slice(2))
+                 rmst3$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_diff) %>% slice(1), "",
+                 rmst5$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_diff)%>% slice(1), "",
+                 rmst9$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_diff)%>% slice(1))
 ) %>% 
   data.table::data.table() %>% 
       knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","), digits=2,
@@ -2393,6 +2393,92 @@ gelman.diag(coda_samples)
 # Multivariate psrf
 # 
 # 1.07
+```
+
+
+```{r 33-output2, echo=T, paged.print=TRUE,eval=T}
+data_list2 <- list(
+    t = part_17_first_ev_naomit$diff_bet_proc,
+    cens = part_17_first_ev_naomit$event_n2,
+    right = part_17_first_ev_naomit$right,
+    sex = part_17_first_ev_naomit$sex_num,
+    fech_ter_num = part_17_first_ev_naomit$fech_ter_num,
+    N = nrow(part_17_first_ev_naomit)  # Number of observations
+)
+
+# Definir el modelo AFT en JAGS
+model_string2 <- "
+model {
+  for (i in 1:N) {
+    cens[i] ~ dinterval(t[i], right[i]) # Información de censura
+    mu[i] <- beta0 + beta1 * sex[i] + beta2 * fech_ter_num[i]
+    logt[i] <- log(t[i])
+    logt[i] ~ dnorm(mu[i], tau)
+  }
+
+  # Priors no informativos
+  beta0 ~ dnorm(0, 0.1)
+  beta1 ~ dnorm(0, 0.1)
+  beta2 ~ dnorm(0, 0.1)
+
+  # Parámetros de la distribución Weibull
+  sigma ~ dgamma(0.01, 0.01)
+  tau <- 1 / (sigma * sigma)
+}
+"
+
+# Ajustar el modelo en JAGS
+n_chains <- 9
+jags_model2 <- jags.model(textConnection(model_string2), 
+                         data = data_list2, 
+                         n.chains = n_chains, 
+                         n.adapt = 1000)
+
+# Período de burn-in
+update(jags_model, n.iter = 5000)
+
+# Ejecutar el modelo
+coda_samples2 <- coda.samples(jags_model2, 
+                             variable.names = c("beta0", "beta1", "beta2", "sigma"), 
+                             n.iter = 50000, thin = 10)
+
+# Resumen de los resultados
+print(summary(coda_samples2))
+
+samples_df2 <- do.call(rbind, lapply(1:length(coda_samples2), function(i) {
+  as.data.frame(as.mcmc(coda_samples2[[i]]))
+}))
+
+samples_df22 <- samples_df2 %>%
+  mutate(
+    hr_beta0 = exp(beta0),
+    hr_beta1 = exp(beta1),
+    hr_beta2 = exp(beta2)
+  )
+
+# Resumir los coeficientes para obtener medias, desviaciones estándar y cuantiles
+hr_summary2 <- samples_df22 %>%
+  summarise(
+    mean_beta0 = mean(hr_beta0),
+    lower_beta0 = quantile(hr_beta0, 0.025),
+    upper_beta0 = quantile(hr_beta0, 0.975),
+    mean_beta1 = mean(hr_beta1),
+    lower_beta1 = quantile(hr_beta1, 0.025),
+    upper_beta1 = quantile(hr_beta1, 0.975),
+    mean_beta2 = mean(hr_beta2),
+    lower_beta2 = quantile(hr_beta2, 0.025),
+    upper_beta2 = quantile(hr_beta2, 0.975)
+  )
+
+# Crear un dataframe ordenado para facilitar la lectura e interpretación
+tidy_hr2 <- tibble(
+  term = c("Intercept", "Sexo(Mujer)", "Fecha de término"),
+  estimate = c(hr_summary2$mean_beta0, hr_summary2$mean_beta1, hr_summary2$mean_beta2),
+  conf.low = c(hr_summary2$lower_beta0, hr_summary2$lower_beta1, hr_summary2$lower_beta2),
+  conf.high = c(hr_summary2$upper_beta0, hr_summary2$upper_beta1, hr_summary2$upper_beta2)
+)
+
+print(tidy_hr2)
 ```
 
 <!---
