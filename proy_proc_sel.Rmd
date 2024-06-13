@@ -2409,13 +2409,11 @@ data_list2 <- list(
 # Definir el modelo AFT en JAGS
 model_string2 <- "
 model {
-  for (i in 1:N) {
-    cens[i] ~ dinterval(t[i], right[i]) # Información de censura
-    mu[i] <- beta0 + beta1 * sex[i] + beta2 * fech_ter_num[i]
-    logt[i] <- log(t[i])
-    logt[i] ~ dnorm(mu[i], tau)
-  }
-
+   for (i in 1:N) {
+     cens[i] ~ dinterval(logt[i], log(right[i])) # Información de censura
+     logt[i] ~ dnorm(mu[i], tau)
+     mu[i] <- beta0 + beta1 * sex[i] + beta2 * fech_ter_num[i]
+   }
   # Priors no informativos
   beta0 ~ dnorm(0, 0.1)
   beta1 ~ dnorm(0, 0.1)
