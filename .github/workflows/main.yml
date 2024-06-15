@@ -55,11 +55,6 @@ jobs:
           key: ${{ runner.os }}-r-${{ hashFiles('**/renv.lock') }}
           restore-keys: ${{ runner.os }}-r-
 
-      - name: Render RMarkdown
-        if: ${{ success() }}  # Only render if previous step succeeded
-        run: |
-          Rscript -e "rmarkdown::render('proy_proc_sel.Rmd')"
-
       - name: Remove desktop.ini files
         run: |
           Rscript -e "
@@ -76,7 +71,12 @@ jobs:
             }
           }
           "
-          
+
+      - name: Render RMarkdown
+        if: ${{ success() }}  # Only render if previous step succeeded
+        run: |
+          Rscript -e "rmarkdown::render('proy_proc_sel.Rmd')"
+
       - name: Commit and Push Changes
         run: |
           git config --local user.email "${{ github.actor }}@users.noreply.github.com"
