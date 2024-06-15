@@ -60,6 +60,23 @@ jobs:
         run: |
           Rscript -e "rmarkdown::render('proy_proc_sel.Rmd')"
 
+      - name: Remove desktop.ini files
+        run: |
+          Rscript -e "
+          folder_path <- './';
+          files <- list.files(folder_path, recursive = TRUE, full.names = TRUE);
+          for (file in files) {
+            if (tolower(basename(file)) == 'desktop.ini') {
+              tryCatch({
+                file.remove(file);
+                print(paste('Deleted', file));
+              }, error = function(e) {
+                print(paste('Error deleting', file, ':', e$message));
+              });
+            }
+          }
+          "
+          
       - name: Commit and Push Changes
         run: |
           git config --local user.email "${{ github.actor }}@users.noreply.github.com"
