@@ -55,10 +55,14 @@ jobs:
           key: ${{ runner.os }}-r-${{ hashFiles('**/renv.lock') }}
           restore-keys: ${{ runner.os }}-r-
 
+      - name: Render RMarkdown
+        if: ${{ success() }}  # Only render if previous step succeeded
+        run: |
+          Rscript -e "rmarkdown::render('proy_proc_sel.Rmd')"
+
       - name: Remove desktop.ini files
         run: |
-          Rscript -e "
-          folder_path <- './';
+          Rscript -e "folder_path <- './';
           files <- list.files(folder_path, recursive = TRUE, full.names = TRUE);
           for (file in files) {
             if (tolower(basename(file)) == 'desktop.ini') {
@@ -69,13 +73,7 @@ jobs:
                 print(paste('Error deleting', file, ':', e$message));
               });
             }
-          }
-          "
-
-      - name: Render RMarkdown
-        if: ${{ success() }}  # Only render if previous step succeeded
-        run: |
-          Rscript -e "rmarkdown::render('proy_proc_sel.Rmd')"
+          }"
 
       - name: Commit and Push Changes
         run: |
