@@ -2487,6 +2487,18 @@ https://www.deloitte.com/global/en/services/legal/blogs/wage-transparency-for-ge
 https://www.ilo.org/resource/news/pay-transparency-can-address-gender-pay-gap
 --->
 
+```{r exp, echo=T, paged.print=TRUE,eval=T}
+# remover .RData
+unlink("*.RData")
+unlink("*.ini")
+unlink(list.files(pattern = "\\.ini$", recursive = TRUE))
+
+# guardar los datos
+date_format <- format(Sys.Date(), "%Y_%m_%d")
+save.image(paste0(date_format, ".RData"))
+
+```
+
 <br>
 
 # Session Info
