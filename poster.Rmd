@@ -1,0 +1,384 @@
+---
+main_topsize: 0.10 #percent coverage of the poster
+main_bottomsize: 0.11 #https://github.com/brentthorne/posterdown/wiki/posterdown_html
+main_width: 1
+main_fontfamily: xaringanthemer::google_font('Baloo Bhai 2')
+primary_colour:  "#21177A" #mas 2 digitos para la trasparencia
+secondary_colour: "#ddd"
+font_family: "Roboto"
+titlebox_height: "10%" #https://github.com/brentthorne/posterdown/issues/113  The default is "15%"
+title_textsize: "70pt" #poster title fontsize
+poster_height: "40in"
+poster_width: "42in"
+column_margins:	"0.15in"
+#ESSENTIALS
+title: '**Monitoreando oportunidades equitativas de promocion laboral por sexo, un ejemplo de analisis de supervivencia  con datos publicos y de libre acceso de una universidad publica de la RM**'
+author:
+  - name: '**A. González-Santa Cruz**'
+    affil: 1, 2
+    main: true
+    orcid: '0000-0002-5166-9121'
+    email: gonzalez.santacruz.andres@gmail.com
+  - name: '**J.A. Ruiz-Tagle Maturana**'
+    affil: 2, 3
+    main: true
+    orcid: '0000-0002-4866-5701'
+    email: jose.ruiztaglem@gmail.com
+affiliation:
+  - num: 1
+    address: Estudiante Doctorado en Salud Pública, Escuela de Salud Pública, Universidad de Chile
+  - num: 2
+    address: Investigador joven, Núcleo Milenio para la Evaluación y Análisis de políticas de Drogas (nDP)
+  - num: 3
+    address: Profesor en Instituto Profesional Duoc UC, Santiago, Chile
+main_findings:
+  - "Mujeres mostraron mayores oportunidades de participar en otro proceso de selección vinculado a mejoras de remuneración"
+logocenter_name: qrcode_transparente_pagina_seleccion.png
+output: 
+  posterdown::posterdown_betterport:
+    self_contained: true
+    pandoc_args: --mathjax
+    number_sections: false
+bibliography_textsize: "10pt"
+link-citations: true
+knit: pagedown::chrome_print
+---
+
+```{css, echo=FALSE}
+div.title_container{
+   background-image: linear-gradient(#ddd 8%, #21177A); /* background-color: #21177A;*/
+}
+
+div.logo_left{
+  background-image: linear-gradient(#ddd 10%, #21177A);/* background-color: #ff7f50; */
+}
+div.logo_right{
+  background-image: linear-gradient(#ddd 10%, #21177A); /*background-color: #ff7f50; */
+}
+:root {
+  --text-bold-color: #21177A;
+}
+
+.poster_title h1 {
+  line-height: .75em !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 0px !important;
+}
+
+.text_50 { /* Important gives precedence  */
+  font-size: 50% !important;
+}
+body{ /* Normal  */
+      text-align: justify;
+}
+```
+
+```{r, include=FALSE}
+# remover objetos y memoria utilizada
+rm(list=ls());gc()
+
+#coma
+options(OutDec = ",")
+
+#elegir repositorio
+options(repos = c(CRAN = "https://cran.dcc.uchile.cl/"))
+
+options(install.packages.check.source = "yes") # Chequea la fuente de los paquetes
+
+#borrar caché
+system("fc-cache -f -v")
+if(!require(pacman)){install.packages("pacman");require(pacman)}
+pacman::p_unlock(lib.loc = .libPaths()) #para no tener problemas reinstalando paquetes
+
+if (getRversion() != "4.1.2") { stop("Requiere versión de R 4.1.2. Actual: ", getRversion()) }
+
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+
+#png("pagina_seleccion.png");plot(qrcode::qr_code('https://agscl.github.io/proc_seleccion/proy_proc_sel.html'));dev.off()
+#magick::image_write(magick::image_transparent(magick::image_read("pagina_seleccion.png"), "white"), path = "qrcode_transparente_pagina_seleccion.png", format = "png") 
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      tidy = FALSE,
+                      message = FALSE,
+                      fig.align = 'center',
+                      out.width = "100%")
+options(knitr.table.format = "html") 
+
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+
+if(!require(magick)){install.packages("magick")};library(magick)
+if(!require(qrcode)){install.packages("qrcode")};library(qrcode)
+if(!require(posterdown)){install.packages("posterdown")};library(posterdown)
+if(!require(survival)){install.packages("survival")};library(survival)
+if(!require(ggsurvfit)){install.packages("ggsurvfit")};library(ggsurvfit)
+if(!require(tidyverse)){install.packages("tidyverse");library(tidyverse)}
+if(!require(ggrepel)){install.packages("ggrepel");library(ggrepel)}
+if(!require(ggpubr)){install.packages("ggpubr");library(ggpubr)}
+if(!require(RefManageR)){install.packages("RefManageR");library(RefManageR)}
+
+load("G:/Mi unidad/DOCUMENTOS/proyecto_proc_sel/2024_08_15.RData")
+
+
+options(knitr.kable.NA = '')
+
+
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+
+format_cells <- function(df, rows ,cols, value = c("italics", "bold", "strikethrough")){
+  
+  # select the correct markup
+  # one * for italics, two ** for bold
+  map <- setNames(c("*", "**", "~~"), c("italics", "bold", "strikethrough"))
+  markup <- map[value]  
+  
+  for (r in rows){
+    for(c in cols){
+      
+      # Make sure values are not factors
+      df[[c]] <- as.character( df[[c]])
+      
+      # Update formatting
+      df[r, c] <- ifelse(nchar(df[r, c])==0,"",paste0(markup, gsub(" ", "", df[r, c]), markup))
+    }
+  }
+  
+  return(df)
+}
+#To produce line breaks in messages and warnings
+knitr::knit_hooks$set(
+  error = function(x, options) {
+    paste('\n\n<div class="alert alert-danger">',
+          gsub('##', '\n', gsub('^##\ Error', '**Error**', x)),
+          '</div>', sep = '\n')
+  },
+  warning = function(x, options) {
+    paste('\n\n<div class="alert alert-warning">',
+          gsub('##', '\n', gsub('^##\ Warning:', '**Warning**', x)),
+          '</div>', sep = '\n')
+  },
+  message = function(x, options) {
+    paste('<div class="message">',
+          gsub('##', '\n', x),
+          '</div>', sep = '\n')
+  }
+)
+
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:#:
+
+
+if(.Platform$OS.type == "windows") withAutoprint({
+  memory.size()
+  memory.size(TRUE)
+  memory.limit()
+})
+memory.limit(size=56000)
+```
+
+```{r, load_refs, include=F, cache=FALSE}
+library(RefManageR)
+BibOptions(check.entries = FALSE,
+           bib.style = "numeric",
+           cite.style = "numeric",
+           style = "html",
+           super = TRUE,
+           hyperlink = FALSE,
+           dashed = FALSE)
+
+myBib <- ReadBib("bib_markdown.bib", check = F,  .Encoding="latin1")
+```
+
+# Introducción
+
+<ul>
+<li>Es una realidad innegable que la población trabajadora no se distribuye equitativamente por sexo, lo que constituye una manifestación de mecanismos subyacentes que han determinado históricamente disparidades por sexo como expresión de diferencias de poder$`r Cite(myBib, c("galea_healthier_2017"))`$.</li>
+<li>Las mujeres tienen trayectorias laborales distintas, siendo ellas quienes acceden a ocupaciones con de menor jerarquía$`r Cite(myBib, c("Vives2018"))`$.</li>
+<li>Usualmente, las mujeres evitan pedir reconocimiento por su trabajo y solicitan menos promociones e incrementos salariales que sus colegas hombres$`r Cite(myBib, c("Modrego2017"))`$.</li>
+<li>Por ello, es necesario monitorear activamente el desempeño de diversas organizaciones estatales y cómo su gestión se alinea con compromisos internacionales que promueven la participación femenina, la igualdad salarial y la prohibición de la discriminación laboral por sexo$`r Cite(myBib, c("dt_tratados_internacionales"))`$.</li>
+<li>La institución patrocinadora de este evento no es la excepción; sus políticas ejemplifican un enfoque de gobierno abierto. Algunos de sus compromisos incluyen la equidad de género como principio y valor institucional, así como el liderazgo en este ámbito, conforme a su Plan Estratégico Institucional. Asimismo, se destaca el respeto y rechazo a la discriminación por sexo como deber de los/as funcionario/as$`r Cite(myBib, c("usach_mision_valores","usach_pei_2020", "usach_codigo_etica_2022", "usach_cuenta_gestion_2019"))`$.</li>
+</ul>
+
+### Objetivos
+
+Se generó una base de datos con registros públicos de procesos de selección de una universidad pública en Santiago, Chile, para analizar oportunidades instantáneas y tiempos promedio de adjudicación de aumentos de renta o transición al estamento profesional restringidos a 3, 5 y 9 años por sexo.
+
+<br>
+
+# Métodos
+
+Utilizando web scraping de datos del Departamento de Desarrollo de Personas de la Universidad de Santiago desde 2013, se estandarizaron y limpiaron datos, enmascarando nombres con SHA-256 (página web disponible en el código QR). Posteriormente, se calcularon los hazard ratios o razones de riesgo ( $\frac{h_1(t)}{h_0(t)}$ ) mediante un modelo de regresión de riesgos proporcionales de Cox
+
+$$ h(t)= h_0(t)e^{\beta_1 x_1+\beta_2x_2+\dots+\beta_p x_p }$$
+
+donde $h_0(t)$ son los riesgos basales (tasas basales), no paramétricos; predictores lineales $x_p$ (donde $\beta_p$ alude a cualquier parámetro), paramétricos en escala log, por lo que actúan de forma multiplicativa sobre los riesgos basales. Basado en este modelo, el único predictor es el sexo.
+
+Posteriormente, se calcularon los tiempos medios de supervivencia $S(t)$ (sin experimentar un aumento de renta o profesionalización) restringidos a 3, 5 y 9 años ( $\tau$ ) posterior a haberse adjudicado un primer proceso de selección (RMST).
+
+$$RMST(\tau) = \int_{0}^{\tau} S(t) \, dt$$
+donde $\int_{0}^{\tau}$ es la integral entre el tiempo 0 y la restricción y $dt$ es el diferencial de tiempo. A su vez, se ajustaron estas mediciones por la fecha de cierre del proceso de selección.
+
+# Resultados
+
+```{r, include=FALSE}
+resumen_res<-
+part_16 %>% dplyr::group_by(id_seleccionado) %>% 
+  dplyr::summarise(cnt=n()) %>%  janitor::tabyl(cnt) %>% 
+  dplyr::ungroup()%>%
+  dplyr::mutate(valid_percent=scales::percent(n/(sum(n)-sum(n[is.na(cnt)])),2),
+                valid_percent=ifelse(is.na(cnt),NA,valid_percent),
+                percent=scales::percent(n/(sum(n)),2))
+perc_m<-
+part_17 %>% dplyr::group_by(id_seleccionado) %>% 
+    dplyr::mutate(cnt_ord=row_number()) %>%
+    dplyr::filter(cnt_ord==1) %>% 
+    janitor::tabyl(sex) %>%
+    dplyr::filter(sex=="m") %>% 
+    pull(valid_percent)
+
+num_proc<-
+part_17 %>% dplyr::group_by(id_seleccionado) %>% 
+    dplyr::mutate(cnt_ord=row_number(), cnt=n()) %>%
+    dplyr::filter(cnt_ord==1) %>% 
+    janitor::tabyl(cnt) %>%
+    dplyr::filter(cnt!=1) %>% 
+    summarise(n= sum(n), percent=sum(percent))
+```
+
+```{r , include=F}
+difs<-as.Date(Sys.Date())- part_17$fech_ter
+sum_difs<-summary(as.numeric(difs))/365.25
+```
+
+En total, se analizaron `r format(nrow(part_13),big.mark=".")` procesos de selección, con `r format(nrow(part_17),big.mark=".")` con resultados hasta 15/08/24. Se seleccionaron `r length(unique(part_17$id_seleccionado))` personas (`r scales::percent(perc_m)` mujeres), y `r paste0(as.numeric(num_proc["n"]),"(",scales::percent(pull(num_proc)),")")` se adjudicaron 2 a 4 procesos. La ventana de seguimiento fue de hasta `r sprintf("%1.1f", as.numeric(sum_difs[6]))` años (Mediana= `r sprintf("%1.1f", as.numeric(sum_difs[3]))`; Primer cuartil= `r sprintf("%1.1f", as.numeric(sum_difs[2]))`; Tercer cuartil= `r sprintf("%1.1f", as.numeric(sum_difs[5]))`).
+
+Dado que los *hazards* se distribuyen de manera proporcional (Residuos Schoefeld: $X^2$ (df=`r sprintf("%1.0f", data.frame(prop_haz$table)[1,2])`)= `r sprintf("%1.2f", data.frame(prop_haz$table)[1,1])`, p=`r round(data.frame(prop_haz$table)[1,3],4)`), se hizo un análisis de supervivencia de Cox, aunque con una varianza robusta, reconociendo una interdependencia por sujetos.
+
+De los resultados del análisis de supervivencia de cox se desprende que las mujeres tendrían `r sprintf("%1.2f",res_cox$estimate)` mayores oportunidades de experimentar un aumento de grado o profesionalización que hombres (95% IC `r sprintf("%1.2f",res_cox$conf.low)`, `r sprintf("%1.2f",res_cox$conf.high)`).
+
+```{r, include=FALSE}
+aRMST3<-
+akm_rmst_2( time= dt_part_17_first_ev$diff_bet_proc, 
+            status=dt_part_17_first_ev$event_one, 
+            group= factor(dt_part_17_first_ev$sex_m), 
+            weight=dt_part_17_first_ev$weights, 
+            tau=3)
+aRMST5<-
+akm_rmst_2( time= dt_part_17_first_ev$diff_bet_proc, 
+            status=dt_part_17_first_ev$event_one, 
+            group= factor(dt_part_17_first_ev$sex_m), 
+            weight=dt_part_17_first_ev$weights, 
+            tau=5)
+aRMST9<-
+akm_rmst_2( time= dt_part_17_first_ev$diff_bet_proc, 
+            status=dt_part_17_first_ev$event_one, 
+            group= factor(dt_part_17_first_ev$sex_m), 
+            weight=dt_part_17_first_ev$weights, 
+            tau=9)
+```
+```{r, echo=FALSE}
+
+cbind.data.frame(
+cbind(tt=c(rep("Tres",2),rep("Cinco",2),rep("Nueve",2)),rbind(aRMST3$rmst_group,aRMST5$rmst_group, aRMST9$rmst_group)) %>% 
+  data.table::data.table(keep.rownames = T) %>% 
+  dplyr::select(tt, rn, everything()) %>% 
+  dplyr::mutate(RMST= round(RMST,2))%>% 
+  dplyr::select(-SE) %>% 
+  dplyr::mutate(across(starts_with("rn"), ~stringr::str_remove(., "Group ")))%>%
+  dplyr::mutate(across(starts_with("rn"), ~stringr::str_remove_all(., "\\d+")))%>%
+  dplyr::mutate(across(starts_with("rn"), ~stringr::str_trim(.))) %>% 
+  dplyr::mutate(rn=rep(c("Hombres","Mujeres"),3)),
+rbind.data.frame("",
+aRMST3$rmst_ratio %>%  mutate(Adjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",CIL), ", ", sprintf("%1.2f",CIU), "), p = ", p))%>% dplyr::select(Adjusted_ratio),"",
+aRMST5$rmst_ratio %>%  mutate(Adjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",CIL), ", ", sprintf("%1.2f",CIU), "), p = ", p))%>% dplyr::select(Adjusted_ratio),"",
+aRMST9$rmst_ratio %>%  mutate(Adjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",CIL), ", ", sprintf("%1.2f",CIU), "), p = ", p)) %>% dplyr::select(Adjusted_ratio)
+),
+rbind.data.frame("",
+aRMST3$rmst_diff %>%  mutate(Adjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",CIL), ", ", sprintf("%1.2f",CIU), "), p = ", p))%>% dplyr::select(Adjusted_diff),"",
+aRMST5$rmst_diff %>%  mutate(Adjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",CIL), ", ", sprintf("%1.2f",CIU), "), p = ", p))%>% dplyr::select(Adjusted_diff),"",
+aRMST9$rmst_diff %>%  mutate(Adjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",CIL), ", ", sprintf("%1.2f",CIU), "), p = ", p)) %>% dplyr::select(Adjusted_diff)),
+rbind.data.frame("",
+                 rmst3$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_ratio) %>% slice(2), "",
+                 rmst5$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_ratio)%>% slice(2), "",
+                 rmst9$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_ratio = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_ratio)%>% slice(2)),
+rbind.data.frame("",
+                 rmst3$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_diff) %>% slice(1), "",
+                 rmst5$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_diff)%>% slice(1), "",
+                 rmst9$unadjusted.result %>% as.data.frame() %>%  mutate(Unadjusted_diff = paste0(sprintf("%1.2f",Est.), " (", sprintf("%1.2f",`lower .95`), ", ", sprintf("%1.2f",`upper .95`), "), p = ", sprintf("%1.4f",p)))%>% dplyr::select(Unadjusted_diff)%>% slice(1))
+) %>% 
+  data.table::data.table() %>% 
+  #     knitr::kable(format = "html", format.args = list(decimal.mark = ".", big.mark = ","), digits=2,
+  #              caption = paste0("Tiempo medio restringido sin experimentar un aumento de renta o profesionalización mediante procesos de selección (RMST)"),
+  #              col.names=c("Tiempo (años)","Sexo","RMST","Razón ajustada","Diferencia ajustada", "Razón cruda", "Diferencia cruda"),
+  #              align =c('l',rep('c', 101)))%>%
+  #   kableExtra::kable_styling(bootstrap_options = c("striped", "hover"),font_size = 32) %>%
+  # kableExtra::add_footnote(c("Nota. Ajuste por fecha de término del proceso de selección (en días)","     Intervalos de confianza al 95% entre paréntesis."),
+  #                           notation = "none")%>%
+  # kableExtra::kable_classic()%>%
+  # kableExtra::scroll_box(width = "100%", height = "375px") 
+kableExtra::kbl(format = 'html',
+    escape = FALSE,
+    caption = paste0("Tiempo medio restringido sin experimentar un aumento de renta o profesionalización mediante procesos de selección (RMST)"),
+    col.names=c("Tiempo (años)","Sexo","RMST","Razón ajustada","Diferencia ajustada", "Razón cruda", "Diferencia cruda"),
+    align =c('l', 'l', 'c', rep('r', 101)),
+    table.attr = "style='width:100%;'") %>% 
+    kableExtra::kable_styling(font_size = 55) %>%
+    gsub("font-size: initial !important;", 
+         "font-size: 20pt !important;", 
+         .) %>%
+  kableExtra::row_spec(1:6, extra_css = "padding: 1.3px")%>%
+  kableExtra::kable_styling(full_width = T, position = "float_left")
+# 
+# kbl(tab_irrs,format = 'html',
+#         escape = FALSE,
+#         col.names= c("Event", "IPW", "IRR"),
+#     caption= "Incidence rate ratios by event") %>%
+#     kable_styling(font_size = 26) %>%
+#     gsub("font-size: initial !important;",
+#          "font-size: 26pt !important;",
+#          .) %>%
+#   row_spec(1:nrow(tab_irrs), extra_css = "padding: 1.3px")%>%
+#   kable_styling(full_width = FALSE, position = "float_left")
+```
+.
+
+A partir de la Tabla, se observa que las mujeres permanecen menos tiempo en el mismo grado desde los 3 años de seguimiento en adelante.
+
+```{r 20-survplot-sex-rec-b, warning=F,message=F,fig.align='center', fig.cap="Hazards Acumulados de Experimentar aumento de grado o readmisión, por Sexo", error=T, fig.retina=2, out.height="70%"}
+fortify(surv_data_sex, fun = "cumhaz") %>% 
+    data.frame() %>% 
+    ggplot(aes(x = time / 365.25, y = 1-estimate, color = strata, fill = strata, group = strata)) +
+    geom_step(show.legend = FALSE) + 
+    geom_ribbon(aes(ymin = 1-conf.low, 
+                    ymax = 1-conf.high), alpha = 0.2) +  # Confidence bands
+    scale_color_manual(values = c("skyblue4", "gray50"), labels = c("Hombre", "Mujer")) +
+    scale_fill_manual(values = c("skyblue4", "gray50"), labels = c("Hombre", "Mujer")) + 	
+    theme_classic() +
+    labs(x = "Tiempo (años)", y = "Hazards acumulados", color = "Sexo")+
+      guides(color = "none")#, fill = "none"
+```
+
+# Discusión
+
+<ul>
+<li>Los análisis sugieren que las mujeres tienen mayores oportunidades de ser seleccionadas nuevamente en procesos de promoción, especialmente después de 5 años de seguimiento. Es posible que la inclusión de la fecha de cierre del proceso haya influido en la asociación observada entre sexo y tiempo de seguimiento a los 3 años.</li>
+<li>Este estudio demuestra cómo los datos públicos pueden utilizarse para evaluar si la gestión de las organizaciones estatales se alinea con sus objetivos y políticas institucionales, siguiendo prácticas basadas en mediciones (*measurement-based practices*).</li>
+<li>Futuras mejoras en la limpieza de datos y la incorporación de modelos de aprendizaje automático pueden optimizar la toma de decisiones y fomentar la democratización del uso de datos para la vigilancia y la rendición de cuentas.</li>
+</ul>
+
+# Referencias
+
+::: text_50
+```{r refs1, echo=FALSE, results="asis", warning=F}
+suppressWarnings(PrintBibliography(myBib))
+#https://github.com/ropensci/RefManageR/blob/master/R/rmdCite.R
+#try(unlink("E:/Mi unidad/Alvacast/SISTRAT 2022 (github)/pres_jun_24_smr_cache", recursive = TRUE)) 
+```
+
+- **Financiamiento**: La Agencia Nacional de Investigación y Desarrollo de Chile (ANID) financia los estudios de Andrés González a través de la Beca de Doctorado Nacional (2023-21230172).
+
+- **Correspondencia a**: Andrés González-Santa Cruz, gonzalez.santacruz.andres@gmail.com
+:::
