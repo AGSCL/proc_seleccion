@@ -2281,7 +2281,7 @@ part_17_first_ev_naomit$right <- ifelse(part_17_first_ev_naomit$event_n == 0,  #
 
 data_list <- list(
   t = part_17_first_ev_naomit$t,
-  right_cens_time = part_17_first_ev_naomit$right_cens_time,
+  right_cens_time = part_17_first_ev_naomit$right,
   is_censored = part_17_first_ev_naomit$is_censored,
   sex = part_17_first_ev_naomit$sex_num,
   fech_ter_num = part_17_first_ev_naomit$fech_ter_num,
