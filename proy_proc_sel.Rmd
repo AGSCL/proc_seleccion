@@ -2265,46 +2265,38 @@ if(.Platform$OS.type == "windows"){
 # Source: README, updated 2023-03-06
 library(rjags)
 
-
-part_17_first_ev_naomit<-
-  na.omit(part_17_first_ev[,c("diff_bet_proc",
-                              "event_n",
-                              "sex",
-                              "fech_ter_num")])
-part_17_first_ev_naomit$event_n2 <- 
-  as.numeric(part_17_first_ev_naomit$event_n > 0)
-part_17_first_ev_naomit$sex_num <- 
-  ifelse(part_17_first_ev_naomit$sex=="m",1,0)
-
-part_17_first_ev_naomit$right <- ifelse(part_17_first_ev_naomit$event_n == 0,  # Censored
-      unclass(as.Date(Sys.time())), # Replace with the correct calculation
-      part_17_first_ev_naomit$diff_bet_proc)    # Uncensored cases
-
 data_list <- list(
-    t = part_17_first_ev_naomit$diff_bet_proc,
-    cens = part_17_first_ev_naomit$event_n2,
-    right = part_17_first_ev_naomit$right,
-    sex = part_17_first_ev_naomit$sex_num,
-    fech_ter_num = part_17_first_ev_naomit$fech_ter_num,
-    N = nrow(part_17_first_ev_naomit)  # Number of observations
+  t = part_17_first_ev_naomit$t,
+  right_cens_time = part_17_first_ev_naomit$right_cens_time,
+  is_censored = part_17_first_ev_naomit$is_censored,
+  sex = part_17_first_ev_naomit$sex_num,
+  fech_ter_num = part_17_first_ev_naomit$fech_ter_num,
+  N = nrow(part_17_first_ev_naomit)
 )
-#Your current model uses dnorm(0, 0.001) for the beta coefficients, which implies a very high variance. In JAGS, the second parameter is the precision (the reciprocal of variance), so 0.001 corresponds to a variance of 1000 (since variance = 1/precision).
+
 model_string <- "
 model {
   for (i in 1:N) {
-    cens[i] ~ dinterval(t[i], right[i]) # Censoring information
-    hazard[i] <- exp(beta0 + beta1 * sex[i] + beta2 * fech_ter_num[i]) 
-    t[i] ~ dweib(r, mu[i])                
-    log(mu[i]) <- -hazard[i]
+    # Proper censoring mechanism
+    is_censored[i] ~ dinterval(t[i], right_cens_time[i])
+    
+    # Weibull survival likelihood
+    t[i] ~ dweib(r, mu[i])
+    
+    # PH parameterization: mu = exp(-(Xβ)/r)
+    log(mu[i]) <- -(beta0 + beta1*sex[i] + beta2*fech_ter_num[i])/r
+    
+    # Hazard function
+    hazard[i] <- r * pow(t[i], r-1) * exp(beta0 + beta1*sex[i] + beta2*fech_ter_num[i])
   }
 
-  # Non-informative priors
+  # Improved priors
   beta0 ~ dnorm(0, 0.1)  
   beta1 ~ dnorm(0, 0.1)
   beta2 ~ dnorm(0, 0.1)
-
-  # Weibull shape parameter
-  r ~ dgamma(0.01, 0.01)
+  
+  # Gamma prior for shape parameter (centered around 1)
+  r ~ dgamma(1, 0.001)
 }
 "
 
@@ -2316,9 +2308,10 @@ jags_model <- jags.model(textConnection(model_string),
 #The n.chains argument indicates the number of Markov chains selected. Secondly, a burn-in period is considered (here the first 1000 simulations) using the update function
 update(jags_model, n.iter = 5000) # Number of burn-in iterations
 #the model is run using coda.samples function for a specific number of iterations to monitor (here n.iter=50000) as well as a specific thinning value (here thin=10) in order to reduce autocorrelation in the saved samples
+# Monitor additional parameters
 coda_samples <- coda.samples(jags_model, 
-                             variable.names = c("beta0", "beta1", "beta2"), 
-                             n.iter = 50000, thin = 10)
+  variable.names = c("beta0", "beta1", "beta2", "r", "hazard"), 
+  n.iter = 50000, thin = 10)
 ```
 
 
