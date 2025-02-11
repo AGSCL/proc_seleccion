@@ -2265,6 +2265,20 @@ if(.Platform$OS.type == "windows"){
 # Source: README, updated 2023-03-06
 library(rjags)
 
+part_17_first_ev_naomit<-
+  na.omit(part_17_first_ev[,c("diff_bet_proc",
+                              "event_n",
+                              "sex",
+                              "fech_ter_num")])
+part_17_first_ev_naomit$event_n2 <- 
+  as.numeric(part_17_first_ev_naomit$event_n > 0)
+part_17_first_ev_naomit$sex_num <- 
+  ifelse(part_17_first_ev_naomit$sex=="m",1,0)
+
+part_17_first_ev_naomit$right <- ifelse(part_17_first_ev_naomit$event_n == 0,  # Censored
+      unclass(as.Date(Sys.time())), # Replace with the correct calculation
+      part_17_first_ev_naomit$diff_bet_proc)    # Uncensored cases
+
 data_list <- list(
   t = part_17_first_ev_naomit$t,
   right_cens_time = part_17_first_ev_naomit$right_cens_time,
