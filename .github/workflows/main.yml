@@ -10,7 +10,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        r-version: [4.1.2]
+        r-version: [4.4.0]
     permissions:
       contents: write
       issues: write
